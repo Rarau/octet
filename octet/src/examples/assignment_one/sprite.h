@@ -17,7 +17,6 @@ namespace octet {
 		// true if this sprite is enabled.
 		bool enabled;
 
-		bool sliced;
 
 		float uvs[8];
 
@@ -25,7 +24,6 @@ namespace octet {
 		sprite() {
 			texture = 0;
 			enabled = true;
-			sliced = false;
 		}
 
 		void init(int _texture, float x, float y, float w, float h) {
@@ -35,7 +33,6 @@ namespace octet {
 			halfHeight = h * 0.5f;
 			texture = _texture;
 			enabled = true;
-			sliced = false;
 			uvs[0] = 0;
 			uvs[1] = 0;
 			uvs[2] = 1;
@@ -53,7 +50,6 @@ namespace octet {
 			halfHeight = h * 0.5f;
 			texture = _texture;
 			enabled = true;
-			sliced = true;
 
 			int numRows = imgH / tileH;
 			int numCols = imgW / tileW;
@@ -69,21 +65,25 @@ namespace octet {
 			float yn = (float)yc / (float)numRows;
 
 			//Upper left
-			uvs[0] = xn;
-			uvs[1] = 1.0f - yn;
+			uvs[4] = xn;
+			uvs[5] = 1.0f - yn;
 
 			//Upper right
-			uvs[2] = xn + nw;
-			uvs[3] = 1.0f - yn;
+			uvs[6] = xn + nw;
+			uvs[7] = 1.0f - yn;
 
 			//Lower right
-			uvs[4] = xn + nw;
-			uvs[5] = 1.0f - yn + nh;
+			uvs[0] = xn + nw;
+			uvs[1] = 1.0f - (yn + nh);
 
 			//Lower left
-			uvs[6] = xn ;
-			uvs[7] = 1.0f - yn + nh;
+			uvs[2] = xn ;
+			uvs[3] = 1.0f - (yn + nh);
 			
+		}
+
+		vec2 get_pos() {
+			return modelToWorld.row(3).xy();
 		}
 
 		void render(texture_shader &shader, mat4t &cameraToWorld) {

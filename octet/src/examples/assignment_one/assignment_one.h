@@ -15,7 +15,8 @@ namespace octet {
 
 	// shader to draw a textured triangle
 	texture_shader texture_shader_;
-	sprite test_sprite;
+	dynarray<sprite> sprites;
+
 
 	vec2 joystick_axis;
   public:
@@ -25,16 +26,24 @@ namespace octet {
 
     /// this is called once OpenGL is initialized
     void app_init() {
-
+		
 	  // set up the shader
 	  texture_shader_.init();
-
+	  
 	  // set up the matrices with a camera 5 units from the origin
 	  cameraToWorld.loadIdentity();
 	  cameraToWorld.translate(0, 0, 3);
 	  
 	  GLuint ship = resource_dict::get_texture_handle(GL_RGBA, "assets/2D_tiles/Floor.gif");
-	  test_sprite.init(ship, 0, -2.75f, 0.25f, 0.25f, 7, 16, 16, 336, 624);
+	  for (int i = 0; i < 50; i++)
+	  {
+		  sprite test_sprite;
+
+		  test_sprite.init(ship, 0 + 0.25f * i, -2.75f, 0.25f, 0.25f, i, 16, 16, 336, 624);
+
+		  sprites.push_back(test_sprite);
+
+	  }
 
 	  joystick_axis.x() = joystick_axis.y() = 0.0f;
     }
@@ -58,8 +67,8 @@ namespace octet {
 	}
 
 	void simulate() {
-		test_sprite.translate(joystick_axis * 0.1f);
-		printf("x: %f   y: %f\n", test_sprite.get_pos().x(), test_sprite.get_pos().y());
+		//test_sprite.translate(joystick_axis * 0.1f);
+//		printf("x: %f   y: %f\n", test_sprite.get_pos().x(), test_sprite.get_pos().y());
 
 	}
 
@@ -85,7 +94,12 @@ namespace octet {
 	  read_input();
 	  simulate();
 
-	  test_sprite.render(texture_shader_, cameraToWorld);
+	  //test_sprite.render(texture_shader_, cameraToWorld);
+
+	  for each (sprite s in sprites)
+	  {
+		  s.render(texture_shader_, cameraToWorld);
+	  }
     }
   };
 }

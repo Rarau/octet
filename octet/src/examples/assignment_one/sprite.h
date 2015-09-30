@@ -16,10 +16,16 @@ namespace octet {
 
 		// true if this sprite is enabled.
 		bool enabled;
+
+		bool sliced;
+
+		float uvs[8];
+
 	public:
 		sprite() {
 			texture = 0;
 			enabled = true;
+			sliced = false;
 		}
 
 		void init(int _texture, float x, float y, float w, float h) {
@@ -29,6 +35,55 @@ namespace octet {
 			halfHeight = h * 0.5f;
 			texture = _texture;
 			enabled = true;
+			sliced = false;
+			uvs[0] = 0;
+			uvs[1] = 0;
+			uvs[2] = 1;
+			uvs[3] = 0;
+			uvs[4] = 1;
+			uvs[5] = 1;
+			uvs[6] = 0;
+			uvs[7] = 1;
+		}
+
+		void init(int _texture, float x, float y, float w, float h, int tileIdx, int tileW, int tileH, int imgW, int imgH) {
+			modelToWorld.loadIdentity();
+			modelToWorld.translate(x, y, 0);
+			halfWidth = w * 0.5f;
+			halfHeight = h * 0.5f;
+			texture = _texture;
+			enabled = true;
+			sliced = true;
+
+			int numRows = imgH / tileH;
+			int numCols = imgW / tileW;
+			
+
+			int xc = tileIdx % numCols;
+			int	yc = tileIdx / numCols;
+			
+			float nw = (float)tileW / (float)imgW;
+			float nh = (float)tileH / (float)imgH;
+
+			float xn = (float)xc / (float)numCols;
+			float yn = (float)yc / (float)numRows;
+
+			//Upper left
+			uvs[0] = xn;
+			uvs[1] = 1.0f - yn;
+
+			//Upper right
+			uvs[2] = xn + nw;
+			uvs[3] = 1.0f - yn;
+
+			//Lower right
+			uvs[4] = xn + nw;
+			uvs[5] = 1.0f - yn + nh;
+
+			//Lower left
+			uvs[6] = xn ;
+			uvs[7] = 1.0f - yn + nh;
+			
 		}
 
 		void render(texture_shader &shader, mat4t &cameraToWorld) {
@@ -64,12 +119,12 @@ namespace octet {
 			glEnableVertexAttribArray(attribute_pos);
 
 			// this is an array of the positions of the corners of the texture in 2D
-			static const float uvs[] = {
+			/*static const float uvs[] = {
 				0, 0,
 				1, 0,
 				1, 1,
 				0, 1,
-			};
+			};*/
 
 			// attribute_uv is position in the texture of each corner
 			// each corner (vertex) has 2 floats (x, y)

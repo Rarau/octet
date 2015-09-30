@@ -32,9 +32,9 @@ namespace octet {
 	  // set up the matrices with a camera 5 units from the origin
 	  cameraToWorld.loadIdentity();
 	  cameraToWorld.translate(0, 0, 3);
-
-	  GLuint ship = resource_dict::get_texture_handle(GL_RGBA, "assets/invaderers/ship.gif");
-	  test_sprite.init(ship, 0, -2.75f, 0.25f, 0.25f);
+	  
+	  GLuint ship = resource_dict::get_texture_handle(GL_RGBA, "assets/2D_tiles/Floor.gif");
+	  test_sprite.init(ship, 0, -2.75f, 0.25f, 0.25f, 63, 16, 16, 336, 624);
 
 	  joystick_axis.x() = joystick_axis.y() = 0.0f;
     }
@@ -48,12 +48,17 @@ namespace octet {
 		else if (is_key_down(key_right)) {
 			joystick_axis.x() = 1.0f;
 		}
-		else
-			joystick_axis.x() = 0.0f;
+		if (is_key_down(key_up)) {
+			joystick_axis.y() = 1.0f;
+		}
+		else if (is_key_down(key_down)) {
+			joystick_axis.y() = -1.0f;
+		}
+
 	}
 
 	void simulate() {
-		test_sprite.translate(joystick_axis);
+		test_sprite.translate(joystick_axis * 0.1f);
 		printf("x: %f   y: %f\n", joystick_axis.x(), joystick_axis.y());
 
 	}

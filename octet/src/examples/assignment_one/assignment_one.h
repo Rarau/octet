@@ -5,6 +5,9 @@
 // Modular Framework for OpenGLES2 rendering on multiple platforms.
 //
 #include "sprite.h"
+#include <iostream>
+#include <fstream>
+#include <string>
 namespace octet {
   /// Scene containing a box with octet.
   class assignment_one : public app {
@@ -29,19 +32,36 @@ namespace octet {
 		
 	  // set up the shader
 	  texture_shader_.init();
-	  
+	  std::ifstream file("C:\\Users\\Nevak\\Documents\\GitHub\\octet\\octet\\assets\\2D_tiles\\map.csv"); // declare file stream: http://www.cplusplus.com/reference/iostream/ifstream/
+	  std::string value;
+
+	  GLuint ship = resource_dict::get_texture_handle(GL_RGBA, "assets/2D_tiles/Floor.gif");
+
+	  while (file.good())
+	  {
+		  getline(file, value, ','); // read a string until next comma: http://www.cplusplus.com/reference/string/getline/
+		  //std::cout << std::string(value, 1, value.length() - 2); // display value removing the first and the last character from it
+		  if (strcmp (value, "\n"))
+			  printf("line!");
+
+		  int tileIndex = atoi(value.c_str());
+		  if (tileIndex != -1)
+		  {
+			  //printf("%d\n", tileIndex);
+			  sprite test_sprite;
+
+			  test_sprite.init(ship, 0 + 0.25f, -2.75f, 0.25f, 0.25f, tileIndex, 16, 16, 336, 624);
+
+			  sprites.push_back(test_sprite);
+		  }
+	  }
 	  // set up the matrices with a camera 5 units from the origin
 	  cameraToWorld.loadIdentity();
 	  cameraToWorld.translate(0, 0, 3);
 	  
-	  GLuint ship = resource_dict::get_texture_handle(GL_RGBA, "assets/2D_tiles/Floor.gif");
 	  for (int i = 0; i < 50; i++)
 	  {
-		  sprite test_sprite;
 
-		  test_sprite.init(ship, 0 + 0.25f * i, -2.75f, 0.25f, 0.25f, i, 16, 16, 336, 624);
-
-		  sprites.push_back(test_sprite);
 
 	  }
 

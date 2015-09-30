@@ -5,6 +5,7 @@
 // Modular Framework for OpenGLES2 rendering on multiple platforms.
 //
 #include "sprite.h"
+#include "xmldump.h"
 #include <iostream>
 #include <fstream>
 #include <string>
@@ -32,16 +33,24 @@ namespace octet {
 		
 	  // set up the shader
 	  texture_shader_.init();
-	  std::ifstream file("C:\\Users\\Nevak\\Documents\\GitHub\\octet\\octet\\assets\\2D_tiles\\map.csv"); // declare file stream: http://www.cplusplus.com/reference/iostream/ifstream/
+
+	  //TiXmlDocument doc("C:\\Users\\Nevak\\Documents\\GitHub\\octet\\octet\\assets\\2D_tiles\\Examples\\Dungeon.csv");
+	  //doc.LoadFile();
+
+	  dump_to_stdout("C:\\Users\\Nevak\\Documents\\GitHub\\octet\\octet\\assets\\2D_tiles\\Examples\\Dungeon.tmx");
+	  /*
+	  std::ifstream file("C:\\\Users\\Nevak\\Documents\\GitHub\\octet\\octet\\assets\\2D_tiles\\Dungeon_Tiles.csv"); // declare file stream: http://www.cplusplus.com/reference/iostream/ifstream/
 	  std::string value;
 
-	  GLuint ship = resource_dict::get_texture_handle(GL_RGBA, "assets/2D_tiles/Floor.gif");
-
+	  GLuint ship = resource_dict::get_texture_handle(GL_RGBA, "assets/2D_tiles/Wall.gif");
+	  int i = 0, k = 0;
+	  int mapWidth = 20;
+	  float tileScale = 0.85f;
 	  while (file.good())
 	  {
 		  getline(file, value, ','); // read a string until next comma: http://www.cplusplus.com/reference/string/getline/
 		  //std::cout << std::string(value, 1, value.length() - 2); // display value removing the first and the last character from it
-		  if (strcmp (value, "\n"))
+		  if (value[0] == 0x0d)
 			  printf("line!");
 
 		  int tileIndex = atoi(value.c_str());
@@ -50,20 +59,22 @@ namespace octet {
 			  //printf("%d\n", tileIndex);
 			  sprite test_sprite;
 
-			  test_sprite.init(ship, 0 + 0.25f, -2.75f, 0.25f, 0.25f, tileIndex, 16, 16, 336, 624);
+			  test_sprite.init(ship, (0.25f * i) * tileScale, -(0.25f * k) * tileScale, 0.25f * tileScale, 0.25f * tileScale, tileIndex, 16, 16, 320, 816);
 
 			  sprites.push_back(test_sprite);
 		  }
+		  if (i >= mapWidth - 1)
+		  {
+			  i = 0;
+			  k++;
+		  }
+		  i++;
+
 	  }
+	  */
 	  // set up the matrices with a camera 5 units from the origin
 	  cameraToWorld.loadIdentity();
 	  cameraToWorld.translate(0, 0, 3);
-	  
-	  for (int i = 0; i < 50; i++)
-	  {
-
-
-	  }
 
 	  joystick_axis.x() = joystick_axis.y() = 0.0f;
     }

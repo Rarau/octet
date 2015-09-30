@@ -431,6 +431,9 @@
     <ClInclude Include="sprite.h">
       <Filter>Source Files</Filter>
     </ClInclude>
+    <ClInclude Include="xmldump.h">
+      <Filter>loaders</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="..\..\resources\mesh_builder.inl">

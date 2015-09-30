@@ -65,20 +65,20 @@ namespace octet {
 			float yn = (float)yc / (float)numRows;
 
 			//Upper left
-			uvs[4] = xn;
-			uvs[5] = 1.0f - yn;
-
-			//Upper right
-			uvs[6] = xn + nw;
+			uvs[6] = xn;
 			uvs[7] = 1.0f - yn;
 
+			//Upper right
+			uvs[4] = xn + nw;
+			uvs[5] = 1.0f - yn;
+
 			//Lower right
-			uvs[0] = xn + nw;
-			uvs[1] = 1.0f - (yn + nh);
+			uvs[2] = xn + nw;
+			uvs[3] = 1.0f - (yn + nh);
 
 			//Lower left
-			uvs[2] = xn ;
-			uvs[3] = 1.0f - (yn + nh);
+			uvs[0] = xn ;
+			uvs[1] = 1.0f - (yn + nh);
 			
 		}
 

@@ -427,6 +427,11 @@
     <ClInclude Include="..\..\containers\string.h">
       <Filter>containers</Filter>
     </ClInclude>
+    <ClInclude Include="example_invaderers.h" />
+    <ClInclude Include="invaderers_app.h" />
+    <ClInclude Include="sprite.h">
+      <Filter>Source Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="..\..\resources\mesh_builder.inl">

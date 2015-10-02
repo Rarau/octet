@@ -10,6 +10,17 @@
 #include <fstream>
 #include <string>
 namespace octet {
+	class tileset {
+	public:
+		int first_gid;
+		int tileW, tileH;
+		string name;
+		string image_path;
+		int imageW, imageH;
+		GLuint tile_tex_handle;
+
+		tileset(){};
+	};
   /// Scene containing a box with octet.
   class assignment_one : public app {
 
@@ -20,6 +31,7 @@ namespace octet {
 	// shader to draw a textured triangle
 	texture_shader texture_shader_;
 	dynarray<sprite> sprites;
+	dynarray<GLuint> tilesets;
 
 
 	vec2 joystick_axis;
@@ -33,11 +45,46 @@ namespace octet {
 		
 	  // set up the shader
 	  texture_shader_.init();
+	  string tmxPath = "C:/Users/Nevak/Documents/GitHub/octet/octet/assets/2D_tiles/Examples";
+	  string tmxFileName = "Dungeon.tmx";
+	  string myPath;
+	  TiXmlDocument doc(myPath.format("%s/%s", tmxPath, tmxFileName));
+	  printf(myPath);
+	  if (doc.LoadFile())
+	  {
+		  for (TiXmlElement* elem = doc.RootElement()->FirstChildElement(); elem != NULL; elem = elem->NextSiblingElement())
+		  {
+			  string elemName = elem->Value();
 
-	  //TiXmlDocument doc("C:\\Users\\Nevak\\Documents\\GitHub\\octet\\octet\\assets\\2D_tiles\\Examples\\Dungeon.csv");
-	  //doc.LoadFile();
+			  const char* attr;
+			  if (elemName == "tileset")
+			  {
+				  printf("%s\n", elemName);
+				  const char* tilesetPath = elem->FirstChildElement()->Attribute("source");
+				  attr = elem->Attribute("name");
+				  myPath.format("%s/%s", tmxPath, tilesetPath);
+				  printf("tspath %s\n", myPath);
 
-	  dump_to_stdout("C:\\Users\\Nevak\\Documents\\GitHub\\octet\\octet\\assets\\2D_tiles\\Examples\\Dungeon.tmx");
+				  if (attr != NULL)
+					  printf("name %s\n", tilesetPath);
+
+				  GLuint ts = resource_dict::get_texture_handle(GL_RGBA, tilesetPath);
+
+				  tileset tileset;
+				  tileset.first_gid = atoi(elem->Attribute("firstgid"));
+				  tilesets.push_back(ts);
+			  }
+		  }
+	  }
+	  else
+		  printf("error loading tmx\n");
+
+	  for each (sprite s in sprites)
+	  {
+		  s.render(texture_shader_, cameraToWorld);
+	  }
+
+	  //dump_to_stdout("C:\\Users\\Nevak\\Documents\\GitHub\\octet\\octet\\assets\\2D_tiles\\Examples\\Dungeon.tmx");
 	  /*
 	  std::ifstream file("C:\\\Users\\Nevak\\Documents\\GitHub\\octet\\octet\\assets\\2D_tiles\\Dungeon_Tiles.csv"); // declare file stream: http://www.cplusplus.com/reference/iostream/ifstream/
 	  std::string value;

@@ -43,6 +43,34 @@ namespace octet {
     assignment_one(int argc, char **argv) : app(argc, argv) {
     }
 
+	// convert an ascii sequence of comma separated integers like "1,3,9,12,34" to an array of integers
+	void atoiv(dynarray<int> &values, const char *src) {
+		//values.resize(0);
+		if (!src) return;
+
+		while (*src > 0 && *src <= ',') ++src;
+		while (*src != 0) {
+			int whole = 0, msign = 1;
+			if (*src == '-') { msign = -1; src++; }
+			while (*src >= '0' && *src <= '9') whole = whole * 10 + (*src++ - '0');
+			values.push_back(whole * msign);
+			while (*src > 0 && *src <= ',') ++src;
+		}
+	}
+	
+	tileset* get_tileset(dynarray<tileset>& tilesets, int tile_gid) {
+		tileset* ts = NULL;
+		for (int i = 0; i < tilesets.size(); i++)
+		{
+			if (tilesets[i].first_gid <= tile_gid) {
+				if (ts == NULL || tilesets[i].first_gid > ts->first_gid) {
+					ts = &tilesets[i];
+				}
+			}
+		}
+		return ts;
+	}
+
     /// this is called once OpenGL is initialized
     void app_init() {
 		
@@ -75,6 +103,7 @@ namespace octet {
 
 				  tileset tileset;
 				  tileset.texture_handle = ts;
+				  tileset.name = string(elem->Attribute("name"));
 				  tileset.first_gid = atoi(elem->Attribute("firstgid"));
 				  tileset.tileH = atoi(elem->Attribute("tileheight"));
 				  tileset.tileW = atoi(elem->Attribute("tilewidth"));
@@ -83,26 +112,55 @@ namespace octet {
 
 				  tilesets.push_back(tileset);
 			  }
-			  else if (elemName == "tileset")
+			  else if (elemName == "layer")
 			  {
-				  printf("layer");
+				  string encoding = elem->FirstChildElement()->Attribute("encoding");
+				  printf("%s\n", encoding);
+				  if (encoding == "csv")
+				  {
+					  tileLayer *layer = new tileLayer();
+					  printf("layer\n");
+
+					  const char* rawCsvData = elem->FirstChildElement()->GetText();
+					  atoiv(*layer, rawCsvData);
+					  layers.push_back(*layer);
+
+				  }
+				  //printf(rawCsvData);
 			  }
 		  }
 	  }
 	  else
 		  printf("error loading tmx\n");
 
-	  int i = 0;
-	  for each (tileset ts in tilesets)
+	  for each (tileLayer layer in layers)
 	  {
-		  //printf("gid: %d\n", ts.first_gid);
-		  //ts.init(ship, (0.25f * i) * tileScale, -(0.25f * k) * tileScale, 0.25f * tileScale, 0.25f * tileScale, tileIndex, 16, 16, 320, 816);
-		  sprite test_sprite;
+		  int i = 0, k = 0;
 
-		  test_sprite.init(ts.texture_handle, i * 0.520f, 0.0f, 0.520f, 0.520f);
+		  //tileLayer layer = layers[0];
 
-		  sprites.push_back(test_sprite);
-		  ++i;
+		  for each (int tile_gid in layer)
+		  {
+
+			  //printf("%d\n", tile_gid);
+			  if (tile_gid > 0)
+			  {
+				  sprite test_sprite;
+				  tileset* ts;
+				  ts = get_tileset(tilesets, tile_gid);
+				  printf("%d - %d, %d - %s\n", tile_gid, i, k, ts->name);
+	//			  printf("%d, %d - %s\n", i, k, ts->name);
+
+				  test_sprite.init(ts->texture_handle, i *  0.252f, -k *  0.252f, 0.252f, 0.252f, tile_gid - ts->first_gid, ts->tileW, ts->tileH, ts->imageW, ts->imageH);
+				  sprites.push_back(test_sprite);
+			  }
+			  ++i;
+			  if (i >= 20 )
+			  {
+				  i = 0;
+				  k++;
+			  }
+		  }
 	  }
 
 	  //dump_to_stdout("C:\\Users\\Nevak\\Documents\\GitHub\\octet\\octet\\assets\\2D_tiles\\Examples\\Dungeon.tmx");
@@ -168,7 +226,7 @@ namespace octet {
 	void simulate() {
 		//test_sprite.translate(joystick_axis * 0.1f);
 //		printf("x: %f   y: %f\n", test_sprite.get_pos().x(), test_sprite.get_pos().y());
-
+		cameraToWorld.translate(vec3(joystick_axis.x() * 0.1f, joystick_axis.y() * 0.1f, 0.0f));
 	}
 
     /// this is called to draw the world

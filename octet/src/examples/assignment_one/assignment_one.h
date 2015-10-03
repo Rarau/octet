@@ -10,6 +10,7 @@
 #include <fstream>
 #include <string>
 namespace octet {
+
 	class tileset {
 	public:
 		int first_gid;
@@ -17,10 +18,12 @@ namespace octet {
 		string name;
 		string image_path;
 		int imageW, imageH;
-		GLuint tile_tex_handle;
+		GLuint texture_handle;
 
 		tileset(){};
 	};
+
+	typedef dynarray<int> tileLayer;
   /// Scene containing a box with octet.
   class assignment_one : public app {
 
@@ -31,8 +34,8 @@ namespace octet {
 	// shader to draw a textured triangle
 	texture_shader texture_shader_;
 	dynarray<sprite> sprites;
-	dynarray<GLuint> tilesets;
-
+	dynarray<tileset> tilesets;
+	dynarray<tileLayer> layers;
 
 	vec2 joystick_axis;
   public:
@@ -59,29 +62,47 @@ namespace octet {
 			  const char* attr;
 			  if (elemName == "tileset")
 			  {
-				  printf("%s\n", elemName);
+				  //printf("%s\n", elemName);
 				  const char* tilesetPath = elem->FirstChildElement()->Attribute("source");
 				  attr = elem->Attribute("name");
 				  myPath.format("%s/%s", tmxPath, tilesetPath);
-				  printf("tspath %s\n", myPath);
+				  //printf("tspath %s\n", myPath);
 
-				  if (attr != NULL)
-					  printf("name %s\n", tilesetPath);
+				  //if (attr != NULL)
+					 // printf("name %s\n", tilesetPath);
 
-				  GLuint ts = resource_dict::get_texture_handle(GL_RGBA, tilesetPath);
+				  GLuint ts = resource_dict::get_texture_handle(GL_RGBA, myPath);
 
 				  tileset tileset;
+				  tileset.texture_handle = ts;
 				  tileset.first_gid = atoi(elem->Attribute("firstgid"));
-				  tilesets.push_back(ts);
+				  tileset.tileH = atoi(elem->Attribute("tileheight"));
+				  tileset.tileW = atoi(elem->Attribute("tilewidth"));
+				  tileset.imageH = atoi(elem->FirstChildElement()->Attribute("height"));
+				  tileset.imageW = atoi(elem->FirstChildElement()->Attribute("width"));
+
+				  tilesets.push_back(tileset);
+			  }
+			  else if (elemName == "tileset")
+			  {
+				  printf("layer");
 			  }
 		  }
 	  }
 	  else
 		  printf("error loading tmx\n");
 
-	  for each (sprite s in sprites)
+	  int i = 0;
+	  for each (tileset ts in tilesets)
 	  {
-		  s.render(texture_shader_, cameraToWorld);
+		  //printf("gid: %d\n", ts.first_gid);
+		  //ts.init(ship, (0.25f * i) * tileScale, -(0.25f * k) * tileScale, 0.25f * tileScale, 0.25f * tileScale, tileIndex, 16, 16, 320, 816);
+		  sprite test_sprite;
+
+		  test_sprite.init(ts.texture_handle, i * 0.520f, 0.0f, 0.520f, 0.520f);
+
+		  sprites.push_back(test_sprite);
+		  ++i;
 	  }
 
 	  //dump_to_stdout("C:\\Users\\Nevak\\Documents\\GitHub\\octet\\octet\\assets\\2D_tiles\\Examples\\Dungeon.tmx");

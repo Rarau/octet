@@ -2,8 +2,7 @@
 namespace octet {
 
 	class sprite {
-		// where is our sprite (overkill for a 2D game!)
-		mat4t modelToWorld;
+
 
 		// half the width of the sprite
 		float halfWidth;
@@ -21,6 +20,9 @@ namespace octet {
 		float uvs[8];
 
 	public:
+		// where is our sprite (overkill for a 2D game!)
+		mat4t modelToWorld;
+
 		sprite() {
 			texture = 0;
 			enabled = true;
@@ -81,7 +83,7 @@ namespace octet {
 			uvs[1] = 1.0f - (yn + nh);
 			
 		}
-
+		
 		vec2 get_pos() {
 			return modelToWorld.row(3).xy();
 		}

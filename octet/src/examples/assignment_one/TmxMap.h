@@ -25,7 +25,7 @@ namespace octet {
 	public:
 		string name;
 	
-		dynarray<int> data;
+		dynarray<unsigned int> data;
 		int mapH, mapW;
 
 	public:
@@ -42,15 +42,20 @@ namespace octet {
 			printf("Destructor tileLayer\n");
 		}
 		
-		int get_tile_at(int x, int y)
+		unsigned int get_tile_at(int x, int y)
 		{
 			return (x < mapW) && (x >= 0) && (y < mapH) && (y >= 0) ?
 				data[y * mapW + x] :
-				-1;
+				0;
 		}
 	};
 	
 	class tmxMap {
+		// Bits on the far end of the 32-bit global tile ID are used for tile flags
+		const unsigned FLIPPED_HORIZONTALLY_FLAG = 0x80000000;
+		const unsigned FLIPPED_VERTICALLY_FLAG = 0x40000000;
+		const unsigned FLIPPED_DIAGONALLY_FLAG = 0x20000000;
+
 		dynarray<int> tiles;
 		dynarray<tileset> tilesets;
 		dynarray<tileLayer> layers;
@@ -162,6 +167,7 @@ namespace octet {
 			}
 		}
 
+		// create a sprite for each tile, might be an overkill...
 		void load_sprites()
 		{
 			for each (tileLayer layer in layers)
@@ -170,16 +176,31 @@ namespace octet {
 				{
 					for (int j = 0; j < mapHeight; j++)
 					{
-						int tile_gid = layer.get_tile_at(i, j);
+						unsigned int tile_gid = layer.get_tile_at(i, j);
 						if (tile_gid > 0)
 						{
+							// Read out the flags
+							bool flipped_horizontally = (tile_gid & FLIPPED_HORIZONTALLY_FLAG);
+							bool flipped_vertically = (tile_gid & FLIPPED_VERTICALLY_FLAG);
+							bool flipped_diagonally = (tile_gid & FLIPPED_DIAGONALLY_FLAG);
+
+							// Clear the flags
+							tile_gid &= ~(FLIPPED_HORIZONTALLY_FLAG |
+								FLIPPED_VERTICALLY_FLAG |
+								FLIPPED_DIAGONALLY_FLAG);
+
 							sprite test_sprite;
 							tileset* ts;
 							ts = get_tileset(tilesets, tile_gid);
-							//printf("%d - %d, %d - %s\n", tile_gid, i, j, ts->name);
-							//			  printf("%d, %d - %s\n", i, k, ts->name);
+							printf("%d - %d, %d - %s\n", tile_gid, i, j, ts->name);
 
 							test_sprite.init(ts->texture_handle, i *  0.17252f, -j *  0.17252f, 0.17252f, 0.17252f, tile_gid - ts->first_gid, ts->tileW, ts->tileH, ts->imageW, ts->imageH);
+							
+
+							float scale_x = flipped_horizontally || flipped_diagonally ? -1.0f : 1.0f;
+							float scale_y = flipped_vertically || flipped_diagonally ? -1.0f : 1.0f;
+							test_sprite.modelToWorld.scale(scale_x, scale_y, 1.0f);
+
 							sprites.push_back(test_sprite);
 						}
 					}
@@ -217,16 +238,16 @@ namespace octet {
 		}
 
 		// convert an ascii sequence of comma separated integers like "1,3,9,12,34" to an array of integers
-		void atoiv_csv(dynarray<int> &values, const char *src) {
+		void atoiv_csv(dynarray<unsigned int> &values, const char *src) {
 			//values.resize(0);
 			if (!src) return;
 
 			while (*src > 0 && *src <= ',') ++src;
 			while (*src != 0) {
-				int whole = 0, msign = 1;
-				if (*src == '-') { msign = -1; src++; }
+				unsigned int whole = 0;//, msign = 1;
+				//if (*src == '-') { msign = -1; src++; }
 				while (*src >= '0' && *src <= '9') whole = whole * 10 + (*src++ - '0');
-				values.push_back(whole * msign);
+				values.push_back(whole);// *msign);
 				while (*src > 0 && *src <= ',') ++src;
 			}
 		}

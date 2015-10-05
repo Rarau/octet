@@ -142,7 +142,6 @@ namespace octet {
 
 		void load_layers(TiXmlElement *rootElement)
 		{
-
 			for (TiXmlElement *elem = rootElement->FirstChildElement(); elem != NULL; elem = elem->NextSiblingElement())
 			{
 				string elemName = elem->Value();
@@ -194,7 +193,7 @@ namespace octet {
 							ts = get_tileset(tilesets, tile_gid);
 							printf("%d - %d, %d - %s\n", tile_gid, i, j, ts->name);
 
-							test_sprite.init(ts->texture_handle, i *  0.17252f, -j *  0.17252f, 0.17252f, 0.17252f, tile_gid - ts->first_gid, ts->tileW, ts->tileH, ts->imageW, ts->imageH);
+							test_sprite.init(ts->texture_handle, i *  0.2f, -j *  0.2f, 0.2f, 0.2f, tile_gid - ts->first_gid, ts->tileW, ts->tileH, ts->imageW, ts->imageH);
 							
 
 							float scale_x = flipped_horizontally || flipped_diagonally ? -1.0f : 1.0f;

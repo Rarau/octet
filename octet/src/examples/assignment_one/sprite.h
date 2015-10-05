@@ -16,7 +16,7 @@ namespace octet {
 		// true if this sprite is enabled.
 		bool enabled;
 
-
+		int numRows, numCols, imgW, imgH, tileW, tileH;
 		float uvs[8];
 
 	public:
@@ -45,7 +45,7 @@ namespace octet {
 			uvs[7] = 1;
 		}
 
-		void init(int _texture, float x, float y, float w, float h, int tileIdx, int tileW, int tileH, int imgW, int imgH) {
+		void init(int _texture, float x, float y, float w, float h, int tileIdx, int tW, int tH, int iW, int iH) {
 			modelToWorld.loadIdentity();
 			modelToWorld.translate(x, y, 0);
 			halfWidth = w * 0.5f;
@@ -53,9 +53,17 @@ namespace octet {
 			texture = _texture;
 			enabled = true;
 
-			int numRows = imgH / tileH;
-			int numCols = imgW / tileW;
+			imgH = iH;
+			imgW = iW;
+			tileH = tH;
+			tileW = tW;
+
+
+			numRows = imgH / tileH;
+			numCols = imgW / tileW;
 			
+			halfWidth = w * 0.5f;
+			halfHeight = h * 0.5f;
 
 			int xc = tileIdx % numCols;
 			int	yc = tileIdx / numCols;
@@ -83,6 +91,27 @@ namespace octet {
 			uvs[1] = 1.0f - (yn + nh);
 			
 		}
+
+		void set_sprite_index(int tileIdx)
+		{
+			int xc = tileIdx % numCols;
+			int	yc = tileIdx / numCols;
+
+			float nw = (float)tileW / (float)imgW;
+			float nh = (float)tileH / (float)imgH;
+
+			float xn = (float)xc / (float)numCols;
+			float yn = (float)yc / (float)numRows;
+
+			uvs[0] = 0;
+			uvs[1] = 0;
+			uvs[2] = 1;
+			uvs[3] = 0;
+			uvs[4] = 1;
+			uvs[5] = 1;
+			uvs[6] = 0;
+			uvs[7] = 1;
+		}
 		
 		vec2 get_pos() {
 			return modelToWorld.row(3).xy();
@@ -101,8 +130,8 @@ namespace octet {
 			glBindTexture(GL_TEXTURE_2D, texture);
 
 			// use "old skool" rendering
-			//glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST_MIPMAP_NEAREST);
-			//glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST_MIPMAP_NEAREST);
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 			shader.render(modelToProjection, 0);
 
 			// this is an array of the positions of the corners of the sprite in 3D

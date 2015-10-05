@@ -13,7 +13,32 @@
 
 namespace octet {
 
+	class character {
 
+	private:
+		sprite _sprite;
+		texture_shader texture_shader_;
+
+	public:
+		character(){}
+		character(sprite s)
+		{
+			_sprite = s;
+			texture_shader_.init();
+		}
+
+
+
+		void move(int dir)
+		{
+			_sprite.set_sprite_index(dir);
+		}
+
+		void render()
+		{
+
+		}
+	};
 
   /// Scene containing a box with octet.
   class assignment_one : public app {
@@ -26,6 +51,9 @@ namespace octet {
 
 
 	vec2 joystick_axis;
+
+	sprite player_sprite;
+	character player;
   public:
     /// this is called when we construct the class before everything is initialised.
     assignment_one(int argc, char **argv) : app(argc, argv) {
@@ -40,6 +68,9 @@ namespace octet {
 	  // set up the matrices with a camera 5 units from the origin
 	  cameraToWorld.loadIdentity();
 	  cameraToWorld.translate(0, 0, 3);
+	  GLuint player_tex = resource_dict::get_texture_handle(GL_RGBA, "assets/2D_tiles/Commissions/Template.gif");
+	  player_sprite.init(player_tex, 0.2f, 0.2f, 0.2f, 0.2f, 0, 16, 16, 64, 64);
+	  player = character(player_sprite);
 
 	  joystick_axis.x() = joystick_axis.y() = 0.0f;
     }
@@ -49,15 +80,23 @@ namespace octet {
 
 		if (is_key_down(key_left)) {
 			joystick_axis.x() = -1.0f;
+			player.move(1);
+
 		}
 		else if (is_key_down(key_right)) {
 			joystick_axis.x() = 1.0f;
+			player.move(2);
+
 		}
 		if (is_key_down(key_up)) {
 			joystick_axis.y() = 1.0f;
+			player.move(3);
+
 		}
 		else if (is_key_down(key_down)) {
 			joystick_axis.y() = -1.0f;
+			player.move(4);
+
 		}
 		
 	}
@@ -65,7 +104,8 @@ namespace octet {
 	void simulate() {
 		//test_sprite.translate(joystick_axis * 0.1f);
 //		printf("x: %f   y: %f\n", test_sprite.get_pos().x(), test_sprite.get_pos().y());
-		cameraToWorld.translate(vec3(joystick_axis.x() * 0.1f, joystick_axis.y() * 0.1f, 0.0f));
+		cameraToWorld.translate(vec3(joystick_axis.x() * 0.2f, joystick_axis.y() * 0.2f, 0.0f));
+		player_sprite.translate(vec2(joystick_axis.x() * 0.2f, joystick_axis.y() * 0.2f));
 	}
 
     /// this is called to draw the world
@@ -96,6 +136,10 @@ namespace octet {
 	  {
 		  s.render(map.texture_shader_, cameraToWorld);
 	  }
+
+	  player_sprite.render(map.texture_shader_, cameraToWorld);
+
+	  //player_sprite.tra
     }
   };
 }

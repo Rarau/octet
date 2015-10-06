@@ -30,13 +30,22 @@ namespace octet {
 			rot = 0;
 			prevPos = _sprite.get_pos();
 			targetPos = prevPos;
+
+
 			is_moving = false;
 		}
 
+		vec2 get_pos()
+		{
+			return _sprite.get_pos();
+		}
+
+		int prevDir = -1;
 		void move(int dir)
 		{
-			if (is_moving)
+			if (is_moving && prevDir != dir)
 			{
+				printf("movlock\n");
 				return;
 			}
 			//_sprite.set_sprite_index(dir);
@@ -70,31 +79,51 @@ namespace octet {
 
 				break;
 			}
+			prevDir = dir;
 			//_sprite.translate(tileset::TILE_SIZE, tileset::TILE_SIZE);
 		}
 
 		int rot;
 		unsigned int anim_fr;
+		float t = 0.0f;
 		void update(float delta_time)
 		{
 
 			++anim_fr;
 			_sprite.set_sprite_index(rot + ((anim_fr / 4) % 4));
 
+			if ((prevPos - targetPos).length() > 0.001f)
+			{
+				//printf("%f, %f\n", targetPos.x(), targetPos.y());
+				if (t <= 1.0f)
+				{
+					t += 0.31f;
 
-			if ((targetPos - _sprite.get_pos()).length() > 0.01f)
-			{
-				//printf("%f, %f \n", targetPos.x(), targetPos.y());
-				is_moving = true;
-				_sprite.translate((targetPos - _sprite.get_pos()).normalize() * delta_time * 0.8f);
+					//printf("%f, %f \n", targetPos.x(), targetPos.y());
+					is_moving = true;
+					//_sprite.translate((targetPos - _sprite.get_pos()).normalize() * delta_time * 1.1f);
+					_sprite.set_pos(lerp(prevPos, targetPos, t));
+				}
+				else
+				{
+					t = 0.0f;
+					//printf("arrived\n");
+					is_moving = false;
+					prevPos = targetPos;
+					_sprite.set_pos(prevPos);
+				}
 			}
-			else
-			{
-				//printf("arrived\n");
-				is_moving = false;
-				prevPos = targetPos;
-				_sprite.set_pos(prevPos);
-			}
+		}
+
+		vec2 lerp(vec2 a, vec2 b, float t) {
+			vec2 result = (t >= 1.0f) ? b : ((t * b) + ((1 - t) * a));
+			/*printf("(%f, %f) (%f, %f) at %f = (%f, %f) \n", 
+				a.x(), a.y(),
+				b.x(), b.y(),
+				t,
+				result.x(), result.y());
+				*/
+			return result;
 		}
 
 		void render(mat4t camera)
@@ -126,13 +155,13 @@ namespace octet {
     /// this is called once OpenGL is initialized
     void app_init() {
 
-		map.load_xml("assets/2D_tiles/Examples/Dungeon.tmx");
+		map.load_xml("assets/2D_tiles/Examples/untitled.tmx");
 		map.dump_tilesets();
 		// set up the matrices with a camera 5 units from the origin
 		cameraToWorld.loadIdentity();
 		cameraToWorld.translate(0, 0, 3);
 		GLuint player_tex = resource_dict::get_texture_handle(GL_RGBA, "assets/2D_tiles/Commissions/Template.gif");
-		player_sprite.init(player_tex, 0.2f, 0.2f, 0.2f, 0.2f, 0, 16, 16, 64, 64);
+		player_sprite.init(player_tex, 3.44f, -2.92f, 0.2f, 0.2f, 0, 16, 16, 64, 64);
 		player = character(player_sprite);
 
 		joystick_axis.x() = joystick_axis.y() = 0.0f;
@@ -166,10 +195,9 @@ namespace octet {
 
 
 	void simulate() {
-		//test_sprite.translate(joystick_axis * 0.1f);
-//		printf("x: %f   y: %f\n", test_sprite.get_pos().x(), test_sprite.get_pos().y());
-		//cameraToWorld.translate(vec3(joystick_axis.x() * 0.2f, joystick_axis.y() * 0.2f, 0.0f));
+
 		player.update(1/33.0f);
+		cameraToWorld.translate(vec3(player.get_pos().x(), player.get_pos().y(), cameraToWorld.row(3).z()) - cameraToWorld.row(3).xyz());
 	}
 
 	int framecount;
@@ -210,7 +238,6 @@ namespace octet {
 
 		player.render(cameraToWorld);
 
-		//player_sprite.tra
     }
   };
 }

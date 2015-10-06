@@ -12,6 +12,9 @@ namespace octet {
 		int imageW, imageH;
 		GLuint texture_handle;
 
+
+
+
 		tileset(){};
 
 		/*tileset(const tileset &copy) {
@@ -23,10 +26,20 @@ namespace octet {
 	};
 	
 	class tileLayer {
+
 	public:
 		string name;
-	
+
+		struct uv {
+			float u;
+			float v;
+		};
+
 		dynarray<unsigned int> data;
+
+		// For each tile we'll have 8 floats (2 for each corner)
+		dynarray<float> uvs;
+
 		int mapH, mapW;
 
 	public:
@@ -34,6 +47,9 @@ namespace octet {
 		{
 			mapH = h;
 			mapW = w;
+
+			// For each tile we'll have 8 floats (2 for each corner)
+			uvs.reserve(h * w * 8);
 		}
 
 		tileLayer(){ mapH = mapW = 0; }
@@ -192,11 +208,11 @@ namespace octet {
 							sprite test_sprite;
 							tileset* ts;
 							ts = get_tileset(tilesets, tile_gid);
-							printf("%d - %d, %d - %s\n", tile_gid, i, j, ts->name);
+							//printf("%d - %d, %d - %s\n", tile_gid, i, j, ts->name);
 
 							test_sprite.init(ts->texture_handle, i * tileset::TILE_SIZE, -j * tileset::TILE_SIZE, tileset::TILE_SIZE, tileset::TILE_SIZE, tile_gid - ts->first_gid, ts->tileW, ts->tileH, ts->imageW, ts->imageH);
 							
-
+							
 							float scale_x = flipped_horizontally || flipped_diagonally ? -1.0f : 1.0f;
 							float scale_y = flipped_vertically || flipped_diagonally ? -1.0f : 1.0f;
 							test_sprite.modelToWorld.scale(scale_x, scale_y, 1.0f);
@@ -206,6 +222,15 @@ namespace octet {
 					}
 				}
 			}
+		}
+
+		void get_uvs_for_tile(int tile_index, int num_rows, int num_cols,  float *dst_array)
+		{
+			//int tile_column = tile_index % num_cols;
+			//int tile_row = tile_index / num_cols;
+
+			dst_array[0] = (float)(tile_index % num_cols) / (float)num_cols;
+			dst_array[1] = (float)(tile_index / num_cols) / (float)num_cols;
 		}
 
 		tileset* get_tileset(dynarray<tileset>& tilesets, int tile_gid) {
@@ -254,7 +279,7 @@ namespace octet {
 
 
 	};
-	float tileset::TILE_SIZE = 0.2f;
+	float tileset::TILE_SIZE = 0.24f;
 
 
 }

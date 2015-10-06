@@ -88,8 +88,7 @@ namespace octet {
 
 			//Lower left
 			uvs[0] = xn ;
-			uvs[1] = 1.0f - (yn + nh);
-			
+			uvs[1] = 1.0f - (yn + nh);			
 		}
 
 		void set_sprite_index(int tileIdx)
@@ -103,20 +102,33 @@ namespace octet {
 			float xn = (float)xc / (float)numCols;
 			float yn = (float)yc / (float)numRows;
 
-			uvs[0] = 0;
-			uvs[1] = 0;
-			uvs[2] = 1;
-			uvs[3] = 0;
-			uvs[4] = 1;
-			uvs[5] = 1;
-			uvs[6] = 0;
-			uvs[7] = 1;
+			
+
+			//Upper left
+			uvs[6] = xn;
+			uvs[7] = 1.0f - yn;
+
+			//Upper right
+			uvs[4] = xn + nw;
+			uvs[5] = 1.0f - yn;
+
+			//Lower right
+			uvs[2] = xn + nw;
+			uvs[3] = 1.0f - (yn + nh);
+
+			//Lower left
+			uvs[0] = xn;
+			uvs[1] = 1.0f - (yn + nh);
+
+			
 		}
 		
 		vec2 get_pos() {
 			return modelToWorld.row(3).xy();
 		}
-
+		void set_pos(vec2 p) {
+			modelToWorld.translate(vec3(p.x(), p.y(), 0.0f) - modelToWorld.row(3).xyz());
+		}
 		void render(texture_shader &shader, mat4t &cameraToWorld) {
 			// invisible sprite... used for gameplay.
 			if (!texture) return;
@@ -149,13 +161,6 @@ namespace octet {
 			glVertexAttribPointer(attribute_pos, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)vertices);
 			glEnableVertexAttribArray(attribute_pos);
 
-			// this is an array of the positions of the corners of the texture in 2D
-			/*static const float uvs[] = {
-				0, 0,
-				1, 0,
-				1, 1,
-				0, 1,
-			};*/
 
 			// attribute_uv is position in the texture of each corner
 			// each corner (vertex) has 2 floats (x, y)
@@ -208,5 +213,7 @@ namespace octet {
 		bool &is_enabled() {
 			return enabled;
 		}
+
+		
 	};
 }

@@ -5,6 +5,7 @@ namespace octet {
 	class tileset {
 
 	public:
+		static float TILE_SIZE;
 		int first_gid;
 		int tileW, tileH;
 		string name;
@@ -193,7 +194,7 @@ namespace octet {
 							ts = get_tileset(tilesets, tile_gid);
 							printf("%d - %d, %d - %s\n", tile_gid, i, j, ts->name);
 
-							test_sprite.init(ts->texture_handle, i *  0.2f, -j *  0.2f, 0.2f, 0.2f, tile_gid - ts->first_gid, ts->tileW, ts->tileH, ts->imageW, ts->imageH);
+							test_sprite.init(ts->texture_handle, i * tileset::TILE_SIZE, -j * tileset::TILE_SIZE, tileset::TILE_SIZE, tileset::TILE_SIZE, tile_gid - ts->first_gid, ts->tileW, ts->tileH, ts->imageW, ts->imageH);
 							
 
 							float scale_x = flipped_horizontally || flipped_diagonally ? -1.0f : 1.0f;
@@ -250,7 +251,10 @@ namespace octet {
 				while (*src > 0 && *src <= ',') ++src;
 			}
 		}
+
+
 	};
+	float tileset::TILE_SIZE = 0.2f;
 
 
 }

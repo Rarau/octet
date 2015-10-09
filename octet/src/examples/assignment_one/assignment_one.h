@@ -198,17 +198,17 @@ namespace octet {
 
 		player.update(1/33.0f);
 		cameraToWorld.translate(vec3(player.get_pos().x(), player.get_pos().y(), cameraToWorld.row(3).z()) - cameraToWorld.row(3).xyz());
+
 	}
 
-	int framecount;
+	unsigned int framecount = 0;
     /// this is called to draw the world
     void draw_world(int x, int y, int w, int h) {
 		//printf(app_utils::get_atom_name(atom_rotateX));
-
-
 		++framecount;
-		//player.move((framecount / 4) % 4);
 
+		
+		//player.move((framecount / 4) % 4);
 		int vx = 0, vy = 0;
 		get_viewport_size(vx, vy);
 

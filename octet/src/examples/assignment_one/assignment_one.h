@@ -230,12 +230,13 @@ namespace octet {
 		simulate();
 
 		//test_sprite.render(texture_shader_, cameraToWorld);
-
+		/*
 		for each (sprite s in map.sprites)
 		{
 			s.render(map.texture_shader_, cameraToWorld);
 		}
-
+		*/
+		map.render(cameraToWorld);
 		player.render(cameraToWorld);
 
     }

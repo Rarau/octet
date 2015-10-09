@@ -37,34 +37,45 @@ namespace octet {
 		};
 
 
-		void render(mat4t& modelToWorld, mat4t &cameraToWorld)
+		void render(texture_shader &shader, mat4t& modelToWorld, mat4t &cameraToWorld)
 		{
-			GLuint IBO;
+			GLuint VB, IBO;
 			mat4t modelToProjection = mat4t::build_projection_matrix(modelToWorld, cameraToWorld);
 
 			// set up opengl to draw textured triangles using sampler 0 (GL_TEXTURE0)
 			glActiveTexture(GL_TEXTURE0);
 			glBindTexture(GL_TEXTURE_2D, texture_handle);
 
-			///shader.render(modelToProjection, 0);
-			
+			shader.render(modelToProjection, 0);
+
+			/*
+			glGenBuffers(1, &VB);
+			glBindBuffer(GL_ARRAY_BUFFER, VB);
+			glBufferData(GL_ARRAY_BUFFER, verts.size(), verts.data(), GL_STATIC_DRAW);
+			*/
+
 			glGenBuffers(1, &IBO);
 			glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, IBO);
 			glBufferData(GL_ELEMENT_ARRAY_BUFFER, indices.size(), indices.data(), GL_STATIC_DRAW);
+
+			//ts = get_tileset(tilesets, tile_gid);
 			// attribute_pos (=0) is position of each corner
 			// each corner has 3 floats (x, y, z)
 			// there is no gap between the 3 floats and hence the stride is 3*sizeof(float)
-			//glVertexAttribPointer(attribute_pos, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)verts.data());
+			glVertexAttribPointer(attribute_pos, verts.size(), GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)verts.data());
 			glEnableVertexAttribArray(attribute_pos);
-			//ts = get_tileset(tilesets, tile_gid);
 
-			glDrawElements(GL_TRIANGLES, indices.size(), GL_UNSIGNED_INT, 0);
 
 			// attribute_uv is position in the texture of each corner
 			// each corner (vertex) has 2 floats (x, y)
 			// there is no gap between the 2 floats and hence the stride is 2*sizeof(float)
-			glVertexAttribPointer(attribute_uv, 2, GL_FLOAT, GL_FALSE, 2 * sizeof(float), (void*)uvs.data());
+			glVertexAttribPointer(attribute_uv, uvs.size(), GL_FLOAT, GL_FALSE, 2 * sizeof(float), (void*)uvs.data());
 			glEnableVertexAttribArray(attribute_uv);
+
+
+			glDrawElements(GL_TRIANGLES, indices.size(), GL_UNSIGNED_INT, 0);
+
+
 
 
 		}
@@ -140,7 +151,7 @@ namespace octet {
 
 						tri_index += 4;
 
-						get_uvs_for_tile(tile_gid - ts->first_gid, ts->num_rows, ts->num_cols, ts->uvs, uv_offset);
+						get_uvs_for_tile(tile_gid - ts->first_gid, ts->num_rows, ts->num_cols, &(ts->uvs), uv_offset);
 						uv_offset += 8;
 					}
 				}
@@ -178,7 +189,7 @@ namespace octet {
 		}
 
 
-		void get_uvs_for_tile(int tile_index, int num_rows, int num_cols, dynarray<float> dst_array, int offset)
+		void get_uvs_for_tile(int tile_index, int num_rows, int num_cols, dynarray<float>* dst_array, int offset)
 		{
 			if (num_cols == 0 && num_rows == 0)
 				return;
@@ -187,14 +198,14 @@ namespace octet {
 			int tile_row = tile_index / num_cols;
 
 
-			dst_array.push_back((float)tile_column / (float)num_cols);
-			dst_array.push_back((float)tile_row / (float)num_cols);
-			dst_array.push_back((float)(tile_column + 1) / (float)num_cols);
-			dst_array.push_back((float)tile_row / (float)num_cols);
-			dst_array.push_back((float)tile_column / (float)num_cols);
-			dst_array.push_back((float)(tile_row + 1) / (float)num_cols);
-			dst_array.push_back((float)(tile_column + 1) / (float)num_cols);
-			dst_array.push_back((float)(tile_row + 1) / (float)num_cols);
+			dst_array->push_back((float)tile_column / (float)num_cols);
+			dst_array->push_back((float)tile_row / (float)num_cols);
+			dst_array->push_back((float)(tile_column + 1) / (float)num_cols);
+			dst_array->push_back((float)tile_row / (float)num_cols);
+			dst_array->push_back((float)tile_column / (float)num_cols);
+			dst_array->push_back((float)(tile_row + 1) / (float)num_cols);
+			dst_array->push_back((float)(tile_column + 1) / (float)num_cols);
+			dst_array->push_back((float)(tile_row + 1) / (float)num_cols);
 
 			/*
 			dst_array[0 + offset] = (float)tile_column / (float)num_cols;
@@ -371,8 +382,11 @@ namespace octet {
 
 		void render(mat4t &cameraToWorld)
 		{
-			mat4t modelToProjection = mat4t::build_projection_matrix(modelToWorld, cameraToWorld);
-
+			//mat4t modelToProjection = mat4t::build_projection_matrix(modelToWorld, cameraToWorld);
+			for (int i = 0; i < tilesets.size(); i++)
+			{
+				tilesets[i].render(texture_shader_, modelToWorld, cameraToWorld);
+			}
 		}
 
 		void load_layers(TiXmlElement *rootElement)
@@ -456,13 +470,13 @@ namespace octet {
 			}
 		}
 		
-		void render(mat4t camera)
+		/*void render(mat4t camera)
 		{
 			for each (sprite s in sprites)
 			{
 				s.render(texture_shader_, camera);
 			}
-		}
+		}*/
 
 	};
 

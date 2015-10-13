@@ -145,15 +145,35 @@ namespace octet {
 			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST_MIPMAP_NEAREST);
 			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 			shader.render(modelToProjection, 0);
+			
+			
+			GLuint VB;
 
 			// this is an array of the positions of the corners of the sprite in 3D
 			// a straight "float" here means this array is being generated here at runtime.
+			
+			
 			float vertices[] = {
 				-halfWidth, -halfHeight, 0,
 				halfWidth, -halfHeight, 0,
 				halfWidth, halfHeight, 0,
 				-halfWidth, halfHeight, 0,
 			};
+			/*
+			glGenBuffers(1, &VB);
+			glBindBuffer(GL_ARRAY_BUFFER, VB);
+			glBufferData(GL_ARRAY_BUFFER, 12 * sizeof(float), vertices, GL_STATIC_DRAW);
+
+			GLuint IBO;
+			*/
+			unsigned int indices[] = {
+				0, 1, 2,
+				0, 2, 3
+			};
+
+			//glGenBuffers(1, &IBO);
+			//glBufferData(GL_ELEMENT_ARRAY_BUFFER, 6 * sizeof(unsigned int), indices, GL_STATIC_DRAW);
+			//glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, IBO);
 
 			// attribute_pos (=0) is position of each corner
 			// each corner has 3 floats (x, y, z)
@@ -170,6 +190,9 @@ namespace octet {
 
 			// finally, draw the sprite (4 vertices)
 			glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
+
+			//glDrawElements(GL_TRIANGLES, 3, GL_UNSIGNED_INT, 0);
+
 		}
 
 		// move the object

@@ -7,6 +7,8 @@
 #include "sprite.h"
 #include "xmldump.h"
 #include "TmxMap.h"
+#include "tilemap_shader.h"
+
 #include <iostream>
 #include <fstream>
 #include <string>
@@ -156,10 +158,12 @@ namespace octet {
     /// this is called once OpenGL is initialized
     void app_init() {
 
-		map.load_xml("assets/2D_tiles/Examples/untitled2.tmx");
+		map.load_xml("assets/2D_tiles/Examples/untitled.tmx");
 		map.dump_tilesets();
 		// set up the matrices with a camera 5 units from the origin
 		cameraToWorld.loadIdentity();
+		//cameraToWorld.ortho(-1.0f, 1.0f, -1.0f, 1.0f, 0.1f, 100.0f);
+
 		cameraToWorld.translate(0, 0, 3);
 		GLuint player_tex = resource_dict::get_texture_handle(GL_RGBA, "assets/2D_tiles/Commissions/Template.gif");
 		player_sprite.init(player_tex, 3.44f, -2.92f, 0.2f, 0.2f, 0, 16, 16, 64, 64);
@@ -208,7 +212,6 @@ namespace octet {
 		//printf(app_utils::get_atom_name(atom_rotateX));
 		++framecount;
 
-		
 		//player.move((framecount / 4) % 4);
 		int vx = 0, vy = 0;
 		get_viewport_size(vx, vy);
@@ -221,7 +224,7 @@ namespace octet {
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 		// don't allow Z buffer depth testing (closer objects are always drawn in front of far ones)
-		glDisable(GL_DEPTH_TEST);
+		glEnable(GL_DEPTH_TEST);
 
 		// allow alpha blend (transparency when alpha channel is 0)
 		glEnable(GL_BLEND);

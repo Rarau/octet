@@ -79,7 +79,7 @@ namespace octet {
 			glVertexAttribPointer(attribute_uv, 2, GL_FLOAT, GL_FALSE, 2 * sizeof(float), (void*)uv_array);
 			glEnableVertexAttribArray(attribute_uv);
 
-			
+			//glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 
 			//glDrawArrays(GL_TRIANGLE_FAN, 0, 60);
 
@@ -90,13 +90,6 @@ namespace octet {
 			//glDisableVertexAttribArray(attribute_uv);
 
 		}
-
-		/*tileset(const tileset &copy) {
-			first_gid = copy.first_gid;
-			tileW = copy.tileW;
-
-			printf("Copy constructor called\n");
-		}*/
 	};
 	
 	class tileLayer {
@@ -116,7 +109,7 @@ namespace octet {
 		int mapHeight, mapWidth;
 
 	public:
-		tileLayer(string name, int w, int h, const char *raw_csv_data, dynarray<tileset> *tilesets)
+		tileLayer(string name, int w, int h, const char *raw_csv_data, dynarray<tileset> *tilesets, float z = 0.0f)
 		{
 			mapHeight = h;
 			mapWidth = w;
@@ -137,21 +130,21 @@ namespace octet {
 
 						ts->verts.push_back(i * tileset::TILE_SIZE);
 						ts->verts.push_back(j * tileset::TILE_SIZE);
-						ts->verts.push_back(0.0f);
+						ts->verts.push_back(z);
 
 						ts->verts.push_back((i + 1) * tileset::TILE_SIZE);
 						ts->verts.push_back(j * tileset::TILE_SIZE);
-						ts->verts.push_back(0.0f);
+						ts->verts.push_back(z);
 
 						ts->verts.push_back(i * tileset::TILE_SIZE);
 						ts->verts.push_back((j + 1) * tileset::TILE_SIZE);
-						ts->verts.push_back(0.0f);
+						ts->verts.push_back(z);
 
 						ts->verts.push_back((i + 1) * tileset::TILE_SIZE);
 						ts->verts.push_back((j + 1) * tileset::TILE_SIZE);
-						ts->verts.push_back(0.0f);
+						ts->verts.push_back(z);
 
-
+						tri_index = (ts->verts.size()) / 3;
 						ts->indices.push_back(tri_index);
 						ts->indices.push_back(tri_index + 2);
 						ts->indices.push_back(tri_index + 1);
@@ -319,48 +312,6 @@ namespace octet {
 			return true;
 		}
 
-		void generate_mesh_data()
-		{
-			// 3 floats for each vertex (x, y, z) and 4 verts for each tile
-			vertices.reserve(3 * mapHeight * mapWidth * 4);
-
-			for (int j = 0; j < mapHeight; j++)
-			{
-				for (int i = 0; i < mapWidth; i++)
-				{
-					vertices.push_back(i * tileset::TILE_SIZE);
-					vertices.push_back(j * tileset::TILE_SIZE);
-					vertices.push_back(0.0f);
-
-					vertices.push_back((i + 1) * tileset::TILE_SIZE);
-					vertices.push_back(j * tileset::TILE_SIZE);
-					vertices.push_back(0.0f);
-
-					vertices.push_back(i * tileset::TILE_SIZE);
-					vertices.push_back((j + 1) * tileset::TILE_SIZE);
-					vertices.push_back(0.0f);
-
-					vertices.push_back((i + 1) * tileset::TILE_SIZE);
-					vertices.push_back((j + 1) * tileset::TILE_SIZE);
-					vertices.push_back(0.0f);
-				}
-			}
-
-			// 2 triangles for each tile
-			indices.reserve(6 * mapHeight * mapWidth);
-
-			for (int j = 0; j < mapHeight * mapWidth; j++)
-			{
-				indices.push_back(j);
-				indices.push_back(j + 1);
-				indices.push_back(j + 2);
-
-				indices.push_back(j + 1);
-				indices.push_back(j + 3);
-				indices.push_back(j + 2);
-			}
-		}
-
 		void load_tilesets(TiXmlElement *rootElement)
 		{
 
@@ -408,6 +359,7 @@ namespace octet {
 
 		void load_layers(TiXmlElement *rootElement)
 		{
+			float z = -0.010f;
 			for (TiXmlElement *elem = rootElement->FirstChildElement(); elem != NULL; elem = elem->NextSiblingElement())
 			{
 				string elemName = elem->Value();
@@ -421,63 +373,18 @@ namespace octet {
 
 
 						const char* rawCsvData = elem->FirstChildElement()->GetText();
-						tileLayer *layer = new tileLayer(elem->Attribute("name"), mapWidth, mapHeight, rawCsvData, &tilesets);
+						tileLayer *layer = new tileLayer(elem->Attribute("name"), mapWidth, mapHeight, rawCsvData, &tilesets, z);
 						printf("layer %s \n", elem->Attribute("name"));
 
 						
 						layers.push_back(*layer);
+						z += 0.010f;
 					}
+					
 					//printf(rawCsvData);
 				}
 			}
 		}
-
-		// create a sprite for each tile, might be an overkill...
-		/*void load_sprites()
-		{
-			for each (tileLayer layer in layers)
-			{
-				//float *uvs_ptr = layer.uvs.data();
-				int uv_offset = 0;
-				for (int i = 0; i < mapWidth; i++)
-				{
-					for (int j = 0; j < mapHeight; j++)
-					{
-						unsigned int tile_gid = layer.get_tile_at(i, j);
-						if (tile_gid > 0)
-						{
-							// Read out the flags
-							bool flipped_horizontally = (tile_gid & FLIPPED_HORIZONTALLY_FLAG);
-							bool flipped_vertically = (tile_gid & FLIPPED_VERTICALLY_FLAG);
-							bool flipped_diagonally = (tile_gid & FLIPPED_DIAGONALLY_FLAG);
-
-							// Clear the flags
-							tile_gid &= ~(FLIPPED_HORIZONTALLY_FLAG |
-								FLIPPED_VERTICALLY_FLAG |
-								FLIPPED_DIAGONALLY_FLAG);
-
-							sprite test_sprite;
-							tileset* ts;
-							ts = get_tileset(tilesets, tile_gid);
-							//printf("%d - %d, %d - %s\n", tile_gid, i, j, ts->name);
-
-							test_sprite.init(ts->texture_handle, i * tileset::TILE_SIZE, -j * tileset::TILE_SIZE, tileset::TILE_SIZE, tileset::TILE_SIZE, tile_gid - ts->first_gid, ts->tileW, ts->tileH, ts->imageW, ts->imageH);
-							get_uvs_for_tile(tile_gid - ts->first_gid, ts->num_rows, ts->num_cols, layer.uvs, uv_offset);
-							uv_offset += 8;
-
-							
-							float scale_x = flipped_horizontally || flipped_diagonally ? -1.0f : 1.0f;
-							float scale_y = flipped_vertically || flipped_diagonally ? -1.0f : 1.0f;
-							test_sprite.modelToWorld.scale(scale_x, scale_y, 1.0f);
-
-							sprites.push_back(test_sprite);
-						}
-					}
-				}
-			}
-		}
-		*/
-
 
 		void dump_tilesets()
 		{
@@ -486,14 +393,6 @@ namespace octet {
 				printf("%s\n", tilesets[i].name);
 			}
 		}
-		
-		/*void render(mat4t camera)
-		{
-			for each (sprite s in sprites)
-			{
-				s.render(texture_shader_, camera);
-			}
-		}*/
 
 	};
 

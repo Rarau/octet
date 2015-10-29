@@ -9,7 +9,7 @@ namespace octet {
 	class middleware_one : public app {
 		// a texture for our text
 		GLuint font_texture;
-		ref<scene_node> sphere_node;
+		ref<mesh_instance> sphere_instance;
 		// information for our text
 		bitmap_font font;
 		// scene for drawing box
@@ -28,6 +28,8 @@ namespace octet {
 		ref<image> dif_texture;
 		ref<image> light_ramp;
 
+		mouse_look mouse_look_helper;
+
 	public:
 		/// this is called when we construct the class before everything is initialised.
 		middleware_one(int argc, char **argv) : app(argc, argv) {
@@ -35,6 +37,9 @@ namespace octet {
 
 		/// this is called once OpenGL is initialized
 		void app_init() {
+
+			mouse_look_helper.init(this, 200.0f / 360.0f, false);
+
 			app_scene = new visual_scene();
 			app_scene->create_default_camera_and_lights();
 			cam = app_scene->get_camera_instance(0);
@@ -43,7 +48,7 @@ namespace octet {
 			custom_mat = new material(vec4(1, 1, 1, 1), shader);
 
 
-			dif_texture = new image("assets/ground.jpg");
+			dif_texture = new image("assets/ground.gif");
 			light_ramp = new image("assets/ramp.jpg");
 
 			custom_mat->add_sampler(0, app_utils::get_atom("diffuse_sampler"), dif_texture, new sampler());
@@ -64,24 +69,12 @@ namespace octet {
 			// add the mesh to the overlay.
 			overlay->add_mesh_text(text);
 
-			mesh_sphere *box = new mesh_sphere(vec3(10.0f), 3.0f);
-			sphere_node = new scene_node();
-			app_scene->add_child(sphere_node);
-
-
-			mat4t box_location;
-			box_location.translate(vec3(0, 0, 0));
-			box_location.rotateX90();
+			sphere_instance = add_sphere();
 
 			mat4t ground_location;
 			ground_location.translate(vec3(0, -10.0f, 0));
 
 			mesh_box * ground = new mesh_box(vec3(10.0f, 0.1f, 10.0f));
-
-			mesh_instance* box_instance = app_scene->add_shape(box_location, box, custom_mat, true);
-
-
-			box_instance->get_node()->get_rigid_body()->setLinearFactor(btVector3(0, 0.5f, 0));
 			app_scene->add_shape(ground_location, ground, custom_mat, false);
 
 			/*
@@ -93,6 +86,31 @@ namespace octet {
 			//btCollisionWorld::rayTest(cam_pos, cam_pos + cam_dir * 10.0f, RayCallback);
 
 		}
+
+		mesh_instance* add_sphere()
+		{
+			mesh_sphere *sphere = new mesh_sphere(vec3(10.0f), 3.0f);
+
+			mat4t location;
+			location.translate(vec3(0, 0, 0));
+			location.rotateX90();
+
+			mesh_instance* sphere_instance = app_scene->add_shape(location, sphere, custom_mat, true);
+			//sphere_instance->get_node()->get_rigid_body()->setLinearFactor(btVector3(0, 0.5f, 0));
+
+			return sphere_instance;
+		}
+		
+		
+		int prev_mouse_x, prev_mouse_y;
+		vec2 get_mouse_delta(int& delta_x, int& delta_y)
+		{
+			int mouse_x, mouse_y;
+			get_mouse_pos(mouse_x, mouse_y);
+			delta_x = mouse_x - prev_mouse_x;
+			delta_y = mouse_y - prev_mouse_y;
+		}
+
 
 		/// this is called to draw the world
 		void draw_world(int x, int y, int w, int h) {
@@ -135,9 +153,41 @@ namespace octet {
 
 			}
 
+			if (is_key_down('W'))
+			{
+				cam->get_node()->translate(-vec3(0,0,1) * 1.5f);
+			}
+			if (is_key_down('S'))
+			{
+				cam->get_node()->translate(vec3(0, 0, 1) * 1.5f);
+			}
+			if (is_key_down('A'))
+			{
+				cam->get_node()->translate(-vec3(1, 0, 0) * 1.5f);
+			}
+			if (is_key_down('D'))
+			{
+				cam->get_node()->translate(vec3(1, 0, 0) * 1.5f);
+			}
+			if (is_key_down('E'))
+			{
+				cam->get_node()->translate(-vec3(0, 1, 0) * 1.5f);
+			}
+			if (is_key_down('Q'))
+			{
+				cam->get_node()->translate(vec3(0, 1, 0) * 1.5f);
+			}
+
+
 			if (is_key_down(key_down))
 			{
-				sphere_node->apply_central_force(vec3(0, 0, -10));
+				sphere_instance->get_node()->activate();
+				sphere_instance->get_node()->apply_central_force(vec3(0, -1, 0) * 100.0f);
+			}
+			if (is_key_down(key_up))
+			{
+				sphere_instance->get_node()->activate();
+				sphere_instance->get_node()->apply_central_force(vec3(0,1,0) * 100.0f);
 			}
 
 			text->format("ray start: %f, %f, %f - end: %f, %f, %f\n ", r.get_start().x(), r.get_start().y(), r.get_start().z(), r.get_end().x(), r.get_end().y(), r.get_end().z());
@@ -151,7 +201,12 @@ namespace octet {
 			// draw the text overlay
 			overlay->render(vx, vy);
 
+
+			mat4t &camera_to_world = cam->get_node()->access_nodeToParent();
+			mouse_look_helper.update(camera_to_world);
 		}
+
+
 
 
 

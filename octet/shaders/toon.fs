@@ -31,7 +31,10 @@ void main() {
     vec3 light_color = lighting[i * 4 + 3].xyz;
     vec3 light_atten = lighting[i * 4 + 4].xyz;
     float diffuse_factor = max(dot(light_direction, nnormal), 0.0);
-    vec3 ramp = texture2D(light_ramp, vec2(diffuse_factor * 0.5 + 0.5, 0.5)).xyz;
+
+    float d = (dot(light_direction, nnormal) * 0.5 + 0.5);
+
+    vec3 ramp = texture2D(light_ramp, vec2(d, d)).xyz;
 
     diffuse_light += ramp * light_color;
   }

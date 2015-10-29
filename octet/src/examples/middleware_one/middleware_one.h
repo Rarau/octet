@@ -49,7 +49,7 @@ namespace octet {
 
 
 			dif_texture = new image("assets/ground.gif");
-			light_ramp = new image("assets/ramp.jpg");
+			light_ramp = new image("assets/ramp.gif");
 
 			custom_mat->add_sampler(0, app_utils::get_atom("diffuse_sampler"), dif_texture, new sampler());
 			custom_mat->add_sampler(1, app_utils::get_atom("light_ramp"), light_ramp, new sampler());
@@ -153,29 +153,31 @@ namespace octet {
 
 			}
 
+			float cam_speed = 0.65f;
+
 			if (is_key_down('W'))
 			{
-				cam->get_node()->translate(-vec3(0,0,1) * 1.5f);
+				cam->get_node()->translate(-vec3(0,0,1) * cam_speed);
 			}
 			if (is_key_down('S'))
 			{
-				cam->get_node()->translate(vec3(0, 0, 1) * 1.5f);
+				cam->get_node()->translate(vec3(0, 0, 1) * cam_speed);
 			}
 			if (is_key_down('A'))
 			{
-				cam->get_node()->translate(-vec3(1, 0, 0) * 1.5f);
+				cam->get_node()->translate(-vec3(1, 0, 0) * cam_speed);
 			}
 			if (is_key_down('D'))
 			{
-				cam->get_node()->translate(vec3(1, 0, 0) * 1.5f);
+				cam->get_node()->translate(vec3(1, 0, 0) * cam_speed);
 			}
 			if (is_key_down('E'))
 			{
-				cam->get_node()->translate(-vec3(0, 1, 0) * 1.5f);
+				cam->get_node()->translate(-vec3(0, 1, 0) * cam_speed);
 			}
 			if (is_key_down('Q'))
 			{
-				cam->get_node()->translate(vec3(0, 1, 0) * 1.5f);
+				cam->get_node()->translate(vec3(0, 1, 0) * cam_speed);
 			}
 
 

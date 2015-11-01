@@ -30,6 +30,8 @@ namespace octet {
 
 		mouse_look mouse_look_helper;
 
+		collada_builder loader;
+
 	public:
 		/// this is called when we construct the class before everything is initialised.
 		middleware_one(int argc, char **argv) : app(argc, argv) {
@@ -37,6 +39,21 @@ namespace octet {
 
 		/// this is called once OpenGL is initialized
 		void app_init() {
+			if (!loader.load_xml("assets/chest.dae")) {
+				printf("failed to load file!\n");
+				exit(1);
+			}
+			resource_dict dict;
+			loader.get_resources(dict);
+
+			// note that this call will dump the code below to log.txt
+			dict.dump_assets(log(""));
+			mesh *Chest_mesh = dict.get_mesh("Chest-mesh");
+			mat4t location;
+			location.translate(vec3(0, 0, 0));
+			location.rotateX90();
+
+
 
 			mouse_look_helper.init(this, 200.0f / 360.0f, false);
 
@@ -48,12 +65,12 @@ namespace octet {
 			custom_mat = new material(vec4(1, 1, 1, 1), shader);
 
 
-			dif_texture = new image("assets/ground.gif");
-			light_ramp = new image("assets/ramp.gif");
+			dif_texture = new image("assets/chest.gif");
+			light_ramp = new image("assets/ramp_2.gif");
 
 			custom_mat->add_sampler(0, app_utils::get_atom("diffuse_sampler"), dif_texture, new sampler());
 			custom_mat->add_sampler(1, app_utils::get_atom("light_ramp"), light_ramp, new sampler());
-
+			
 
 
 			// create the overlay
@@ -76,6 +93,9 @@ namespace octet {
 
 			mesh_box * ground = new mesh_box(vec3(10.0f, 0.1f, 10.0f));
 			app_scene->add_shape(ground_location, ground, custom_mat, false);
+
+
+			mesh_instance* chest_instance = app_scene->add_shape(location, Chest_mesh, custom_mat, true);
 
 			/*
 			btVector3 cam_pos = btVector3(cam_node.get_position().x(), cam_node.get_position().y(), cam_node.get_position().z());

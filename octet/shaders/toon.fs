@@ -24,6 +24,13 @@ void main() {
   vec3 npos = camera_pos_;
   vec3 diffuse_light = lighting[0].xyz;
 
+  vec4 rim_color = vec4(0.97,0.88,1,0.75);
+  float rim_power = 2.5;
+
+
+  vec3 view_dir = normalize(model_pos_ - camera_pos_);
+  vec3 rim = pow (max (0.0, dot (view_dir, nnormal) ), rim_power) * rim_color.rgb * rim_color.a;
+  //rim = pow(rim, 2.5);
 
   for (int i = 0; i != num_lights; ++i) {
     vec3 light_pos = lighting[i * 4 + 1].xyz;
@@ -38,6 +45,6 @@ void main() {
 
     diffuse_light += ramp * light_color;
   }
-  gl_FragColor = vec4(diffuse.xyz * diffuse_light, 1.0);
+  gl_FragColor = vec4(diffuse.xyz * diffuse_light , 1.0);
 }
 

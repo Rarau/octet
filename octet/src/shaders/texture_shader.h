@@ -49,23 +49,24 @@ namespace octet { namespace shaders {
 		varying vec4 pos_;
 		varying vec4 lightPos_;
 
+		uniform int num_lights;
         uniform sampler2D sampler;
-		uniform vec4 ambientColor = vec4 (0.20f, 0.20f, 0.60f, 0.0f);
+		uniform vec4 ambientColor = vec4 (0.160f, 0.160f, 0.310f, 0.0f);
 
-		uniform float k0 = 0.02f;
-		uniform float k1 = 0.05f;
-		uniform float k2 = 0.05f;
+		uniform float k0 = 0.2152f;
+		uniform float k1 = 0.0965f;
+		uniform float k2 = 6.95f;
 
         void main() { 
 			//vec4 lightPos = modelToProjection * lightPos;
 			//float atten = 1 / (k0 + k1 * distance(lightPos.xy, gl_FragCoord.xy));
 			float d = distance(lightPos_.xy, pos_.xy);
 			float atten = 1 / (k0 + k1 * d + k2 * d * d);
-			vec4 lightColor = vec4(1.0f, 0.9f, 0.4f, 1.0f) * atten;
+			vec4 lightColor = vec4(0.62f, 0.82f, 0.10f, 1.0f) * atten;
 			lightColor.a = 1.0f;
 			vec4 diffColor = texture2D(sampler, uv_);
 			vec4 fragColor = diffColor * lightColor;
-			gl_FragColor = clamp(fragColor, 0.0f, 1.0f);
+			gl_FragColor = fragColor + ambientColor * diffColor;
 			/*gl_FragColor = vec4(pos_.x, pos_.y, 0.0f, 1.0f) * 0.1f;
 			gl_FragColor.a = 1.0f;
 			gl_FragColor.b = 1.0f;

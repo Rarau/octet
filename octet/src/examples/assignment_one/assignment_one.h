@@ -129,9 +129,9 @@ namespace octet {
 			return result;
 		}
 
-		void render(mat4t camera)
+		void render(mat4t camera, vec3 lightPos)
 		{
-			_sprite.render(texture_shader_, camera);
+			_sprite.render(texture_shader_, camera, lightPos);
 		}
 	};
 
@@ -240,8 +240,10 @@ namespace octet {
 			s.render(map.texture_shader_, cameraToWorld);
 		}
 		*/
-		map.render(cameraToWorld);
-		player.render(cameraToWorld);
+		printf("Player pos: %f, %f\n", player.get_pos().x(), player.get_pos().y());
+
+		map.render(cameraToWorld, vec3(player.get_pos().x(), player.get_pos().y(), 0.0f));
+		player.render(cameraToWorld, vec3(player.get_pos().x(), player.get_pos().y(), 0.0f));
 
     }
   };

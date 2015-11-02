@@ -129,7 +129,7 @@ namespace octet {
 		void set_pos(vec2 p) {
 			modelToWorld.translate(vec3(p.x(), p.y(), 0.0f) - modelToWorld.row(3).xyz());
 		}
-		void render(texture_shader &shader, mat4t &cameraToWorld) {
+		void render(texture_shader &shader, mat4t &cameraToWorld, vec3 lightPos) {
 			// invisible sprite... used for gameplay.
 			if (!texture) return;
 
@@ -144,7 +144,7 @@ namespace octet {
 			// use "old skool" rendering
 			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST_MIPMAP_NEAREST);
 			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-			shader.render(modelToProjection, 0);
+			shader.render(modelToProjection, 0, lightPos, modelToWorld);
 			
 			
 			GLuint VB;

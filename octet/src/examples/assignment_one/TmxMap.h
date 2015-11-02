@@ -37,7 +37,7 @@ namespace octet {
 		};
 
 
-		void render(texture_shader &shader, mat4t& modelToWorld, mat4t &cameraToWorld)
+		void render(texture_shader &shader, mat4t& modelToWorld, mat4t &cameraToWorld, vec3 lightPos)
 		{
 
 			GLuint VB, IBO;
@@ -50,7 +50,7 @@ namespace octet {
 			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST_MIPMAP_NEAREST);
 			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 
-			shader.render(modelToProjection, 0);
+			shader.render(modelToProjection, 0, lightPos, modelToWorld);
 			float * vert_array = verts.data();
 			unsigned int * ind_array = indices.data();
 			float * uv_array = uvs.data();
@@ -349,11 +349,11 @@ namespace octet {
 			}
 		}
 
-		void render(mat4t &cameraToWorld)
+		void render(mat4t &cameraToWorld, vec3 lightPos)
 		{
 			for (int i = 0; i < tilesets.size(); i++)
 			{
-				tilesets[i].render(texture_shader_, modelToWorld, cameraToWorld);
+				tilesets[i].render(texture_shader_, modelToWorld, cameraToWorld, lightPos);
 			}
 		}
 

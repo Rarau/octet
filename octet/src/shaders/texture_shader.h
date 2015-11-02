@@ -16,6 +16,7 @@ namespace octet { namespace shaders {
 
     // index for texture sampler
     GLuint samplerIndex_;
+	GLuint samplerNormalMapIndex_;
 
 	GLuint lightPosIndex_;
   public:
@@ -51,9 +52,11 @@ namespace octet { namespace shaders {
 
 		uniform int num_lights;
         uniform sampler2D sampler;
+		uniform sampler2D normalMapSampler;
+
 		uniform vec4 ambientColor = vec4 (0.160f, 0.160f, 0.310f, 0.0f);
 
-		uniform float k0 = 0.2152f;
+		uniform float k0 = 0.62152f;
 		uniform float k1 = 0.0965f;
 		uniform float k2 = 6.95f;
 
@@ -62,7 +65,7 @@ namespace octet { namespace shaders {
 			//float atten = 1 / (k0 + k1 * distance(lightPos.xy, gl_FragCoord.xy));
 			float d = distance(lightPos_.xy, pos_.xy);
 			float atten = 1 / (k0 + k1 * d + k2 * d * d);
-			vec4 lightColor = vec4(0.62f, 0.82f, 0.10f, 1.0f) * atten;
+			vec4 lightColor = vec4(0.82f, 0.82f, 0.10f, 1.0f) * atten;
 			lightColor.a = 1.0f;
 			vec4 diffColor = texture2D(sampler, uv_);
 			vec4 fragColor = diffColor * lightColor;
@@ -81,7 +84,9 @@ namespace octet { namespace shaders {
       // extract the indices of the uniforms to use later
       modelToProjectionIndex_ = glGetUniformLocation(program(), "modelToProjection");
 	  modelToWorldIndex_ = glGetUniformLocation(program(), "modelToWorld");
-      samplerIndex_ = glGetUniformLocation(program(), "sampler");
+	  samplerIndex_ = glGetUniformLocation(program(), "sampler");
+	  samplerNormalMapIndex_ = glGetUniformLocation(program(), "samplerNormalMap");
+
 	  lightPosIndex_ = glGetUniformLocation(program(), "lightPos");
     }
 
@@ -91,6 +96,7 @@ namespace octet { namespace shaders {
 
       // customize the program with uniforms
       glUniform1i(samplerIndex_, sampler);
+	  //glUniform1i(samplerNormalMapIndex_, normalMap);
       glUniformMatrix4fv(modelToProjectionIndex_, 1, GL_FALSE, modelToProjection.get());
 	  glUniformMatrix4fv(modelToWorldIndex_, 1, GL_FALSE, modelToWorld.get());
 

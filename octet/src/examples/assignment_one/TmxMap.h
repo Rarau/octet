@@ -13,6 +13,7 @@ namespace octet {
 		string name;
 		int imageW, imageH;
 		GLuint texture_handle;
+		GLuint normalMap_handle;
 
 		int num_cols;
 		int num_rows;
@@ -37,7 +38,7 @@ namespace octet {
 		};
 
 
-		void render(texture_shader &shader, mat4t& modelToWorld, mat4t &cameraToWorld, vec3 lightPos)
+		void render(tilemap_shader &shader, mat4t& modelToWorld, mat4t &cameraToWorld, vec3 lightPos)
 		{
 
 			GLuint VB, IBO;
@@ -46,11 +47,13 @@ namespace octet {
 			// set up opengl to draw textured triangles using sampler 0 (GL_TEXTURE0)
 			glActiveTexture(GL_TEXTURE0);
 			glBindTexture(GL_TEXTURE_2D, texture_handle);
+			glActiveTexture(GL_TEXTURE1);
+			glBindTexture(GL_TEXTURE_2D, normalMap_handle);
 			// use "old skool" rendering
 			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST_MIPMAP_NEAREST);
 			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 
-			shader.render(modelToProjection, 0, lightPos, modelToWorld);
+			shader.render(modelToProjection, 0, 1, lightPos, modelToWorld);
 			float * vert_array = verts.data();
 			unsigned int * ind_array = indices.data();
 			float * uv_array = uvs.data();
@@ -273,13 +276,13 @@ namespace octet {
 		int mapHeight, mapWidth;
 
 	public:
-		dynarray<sprite> sprites;
-		texture_shader texture_shader_;
+		//dynarray<sprite> sprites;
+		tilemap_shader tilemap_shader_;
 
 		// Path (url) starting from octet folder
 		bool load_xml(const char *url) {
 			// set up the shader
-			texture_shader_.init();
+			tilemap_shader_.init();
 
 			modelToWorld.loadIdentity();
 			modelToWorld.scale(1.0f, -1.0f, 1.0f);
@@ -332,9 +335,12 @@ namespace octet {
 					// printf("name %s\n", tilesetPath);
 
 					GLuint ts = resource_dict::get_texture_handle(GL_RGBA, myPath);
+					GLuint ns = resource_dict::get_texture_handle(GL_RGBA, "assets/2D_tiles/Castle2-normal.gif");
+
 
 					tileset tileset(mapHeight, mapWidth);
 					tileset.texture_handle = ts;
+					tileset.normalMap_handle = ns;
 					tileset.name = string(elem->Attribute("name"));
 					tileset.first_gid = atoi(elem->Attribute("firstgid"));
 					tileset.tileH = atoi(elem->Attribute("tileheight"));
@@ -353,7 +359,7 @@ namespace octet {
 		{
 			for (int i = 0; i < tilesets.size(); i++)
 			{
-				tilesets[i].render(texture_shader_, modelToWorld, cameraToWorld, lightPos);
+				tilesets[i].render(tilemap_shader_, modelToWorld, cameraToWorld, lightPos);
 			}
 		}
 

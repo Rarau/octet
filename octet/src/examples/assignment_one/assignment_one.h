@@ -6,8 +6,8 @@
 //
 #include "sprite.h"
 #include "xmldump.h"
-#include "TmxMap.h"
 #include "tilemap_shader.h"
+#include "TmxMap.h"
 
 #include <iostream>
 #include <fstream>
@@ -48,7 +48,7 @@ namespace octet {
 		{
 			if (is_moving && prevDir != dir)
 			{
-				printf("movlock\n");
+				//printf("movlock\n");
 				return;
 			}
 			//_sprite.set_sprite_index(dir);
@@ -240,7 +240,7 @@ namespace octet {
 			s.render(map.texture_shader_, cameraToWorld);
 		}
 		*/
-		printf("Player pos: %f, %f\n", player.get_pos().x(), player.get_pos().y());
+		//printf("Player pos: %f, %f\n", player.get_pos().x(), player.get_pos().y());
 
 		map.render(cameraToWorld, vec3(player.get_pos().x(), player.get_pos().y(), 0.0f));
 		player.render(cameraToWorld, vec3(player.get_pos().x(), player.get_pos().y(), 0.0f));

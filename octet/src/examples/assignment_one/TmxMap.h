@@ -334,7 +334,7 @@ namespace octet {
 					string normalMapPath = myPath;
 					int extPos = normalMapPath.find(".gif");
 					string np = normalMapPath.insert(extPos, "-normal.gif");
-
+					np[strlen("-normal.gif") + extPos] = 0x00;
 					printf("nPath = %s\n", np);
 					//printf("tspath %s\n", myPath);
 

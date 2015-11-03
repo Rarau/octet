@@ -322,7 +322,6 @@ namespace octet { namespace containers {
         memcpy(new_data + pos + rhs_size, data_, data_size - pos + 1);
         release();
         data_ = new_data;
-		data_[pos + rhs_size] = 0x00;
       }
       return *this;
     }

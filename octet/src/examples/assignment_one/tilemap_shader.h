@@ -65,7 +65,7 @@ namespace octet {
 					//vec4 lightPos = modelToProjection * lightPos;
 					//float atten = 1 / (k0 + k1 * distance(lightPos.xy, gl_FragCoord.xy));
 					float d = distance(lightPos_.xy, pos_.xy);
-					vec3 lightDir = pos_.xyz + vec3(0.0f, 0.0f, 0.05f) - lightPos_.xyz;
+					vec3 lightDir = pos_.xyz + vec3(0.0f, 0.0f, 0.15f) - lightPos_.xyz;
 					lightDir = normalize(lightDir);
 
 					float atten = 1 / (k0 + k1 * d + k2 * d * d);
@@ -76,11 +76,13 @@ namespace octet {
 					// Normal extraction from normal map
 					vec4 normalMap = texture2D(normalMapSampler, uv_);
 					normalMap = normalize(normalMap * 2.0f - 1.0f);
+					normalMap.z *= -0.2f;
 					vec3 pixelNormal = normalize(normalMap.xyz);
 					float lightIntensity = clamp(dot(pixelNormal, lightDir), 0, 1);
 
 					vec4 fragColor = diffColor * lightColor * lightIntensity;
 					gl_FragColor = fragColor + ambientColor * diffColor;
+					gl_FragColor.a = diffColor.a;
 					//gl_FragColor = normalMap;
 
 					/*gl_FragColor = vec4(pos_.x, pos_.y, 0.0f, 1.0f) * 0.1f;

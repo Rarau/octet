@@ -328,14 +328,21 @@ namespace octet {
 					//printf("%s\n", elemName);
 					const char* tilesetPath = elem->FirstChildElement()->Attribute("source");
 					attr = elem->Attribute("name");
+					//printf("");
 					myPath.format("%s/%s", doc_path, tilesetPath);
+
+					string normalMapPath = myPath;
+					int extPos = normalMapPath.find(".gif");
+					string np = normalMapPath.insert(extPos, "-normal.gif");
+
+					printf("nPath = %s\n", np);
 					//printf("tspath %s\n", myPath);
 
 					//if (attr != NULL)
 					// printf("name %s\n", tilesetPath);
 
 					GLuint ts = resource_dict::get_texture_handle(GL_RGBA, myPath);
-					GLuint ns = resource_dict::get_texture_handle(GL_RGBA, "assets/2D_tiles/Castle2-normal.gif");
+					GLuint ns = resource_dict::get_texture_handle(GL_RGBA, np);
 
 
 					tileset tileset(mapHeight, mapWidth);

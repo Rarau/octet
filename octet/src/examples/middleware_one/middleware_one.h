@@ -32,6 +32,9 @@ namespace octet {
 
 		collada_builder loader;
 		TwBar *myBar;
+		float test = 4.0f;
+		float* camx;
+
 	public:
 		/// this is called when we construct the class before everything is initialised.
 		middleware_one(int argc, char **argv) : app(argc, argv) {
@@ -89,7 +92,7 @@ namespace octet {
 			// add the mesh to the overlay.
 			overlay->add_mesh_text(text);
 
-			sphere_instance = add_sphere();
+			sphere_instance = add_sphere(vec3(0.0f));
 
 			mat4t ground_location;
 			ground_location.translate(vec3(0, -10.0f, 0));
@@ -100,22 +103,42 @@ namespace octet {
 
 			mesh_instance* chest_instance = app_scene->add_shape(location, Chest_mesh, custom_mat, true);
 			chest_instance->get_node()->rotate(-90.0f, vec3(1, 0, 0));
+
 			/*
+			
 			btVector3 cam_pos = btVector3(cam_node.get_position().x(), cam_node.get_position().y(), cam_node.get_position().z());
 			btVector3 cam_dir = btVector3(cam_node.get_z().x(), cam_node.get_z().y(), cam_node.get_z().z());
 
 			//app_scene->add_mesh_instance(new mesh_instance(node, box, red));
-			btCollisionWorld::ClosestRayResultCallback RayCallback(cam_pos, cam_pos + cam_dir * 10.0f);*/
+			btCollisionWorld::ClosestRayResultCallback RayCallback(cam_pos, cam_pos + cam_dir * 10.0f);
+			
+			*/
+			
 			//btCollisionWorld::rayTest(cam_pos, cam_pos + cam_dir * 10.0f, RayCallback);
+			
+			camx = &(cam->get_node()->get_position().x());
+			
 
+			TwAddVarRO(myBar, "Cam_X", TW_TYPE_FLOAT, camx, " label='X' ");
+			//add_hinge_joint(sphere_instance->get_node(), chest_instance->get_node(), btVector3(1.0f, 0.0f, 0.0f), btVector3(1.0f, 0.0f, 0.0f), btVector3(0.0f, 1.0f, 0.0f));
 		}
 
-		mesh_instance* add_sphere()
+		void add_hinge_joint(scene_node* node_a, scene_node* node_b, btVector3 anchor_a, btVector3 anchor_b, btVector3 axis)
+		{
+			btRigidBody *rigidbody_a = node_a->get_rigid_body();
+			btRigidBody *rigidbody_b = node_b->get_rigid_body();
+
+			btHingeConstraint *hinge = new btHingeConstraint(*rigidbody_a, *rigidbody_b, anchor_a, anchor_b, axis, axis, true);
+			hinge->setDbgDrawSize(btScalar(5.f));
+			app_scene->add_hinge(hinge);
+		}
+
+		mesh_instance* add_sphere(vec3 pos)
 		{
 			mesh_sphere *sphere = new mesh_sphere(vec3(10.0f), 3.0f);
 
 			mat4t location;
-			location.translate(vec3(0, 0, 0));
+			location.translate(pos);
 			location.rotateX90();
 
 			mesh_instance* sphere_instance = app_scene->add_shape(location, sphere, custom_mat, true);
@@ -139,6 +162,7 @@ namespace octet {
 		/// this is called to draw the world
 		void draw_world(int x, int y, int w, int h) {
 			TwWindowSize(w, h);
+			camx = &(cam->get_node()->get_position().x());
 
 			int vx = 0, vy = 0;
 			get_viewport_size(vx, vy);
@@ -210,7 +234,8 @@ namespace octet {
 			if (is_key_down(key_down))
 			{
 				sphere_instance->get_node()->activate();
-				sphere_instance->get_node()->apply_central_force(vec3(0, -1, 0) * 100.0f);
+				//sphere_instance->get_node()->apply_central_force(vec3(0, -1, 0) * 100.0f);
+				sphere_instance->get_node()->get_rigid_body()->applyCentralForce(btVector3(0, -1, 0) * 100.0f);
 			}
 			if (is_key_down(key_up))
 			{
@@ -243,26 +268,30 @@ namespace octet {
 			int mX, mY;
 			get_mouse_pos(mX, mY);
 
-			if (is_key_going_down(key_lmb))
+			if (is_key_down(key_lmb))
 			{
 				TwMouseButton(TW_MOUSE_PRESSED, TW_MOUSE_LEFT);
 			}
-			if (is_key_going_up(key_lmb))
+			//if (is_key_going_up(key_lmb))
+			else
 			{
 				TwMouseButton(TW_MOUSE_RELEASED, TW_MOUSE_LEFT);
 			}
-
-			if (is_key_going_down(key_rmb))
+			/*
+			if (is_key_down(key_rmb))
 			{
 				TwMouseButton(TW_MOUSE_PRESSED, TW_MOUSE_RIGHT);
 			}
-			if (is_key_going_up(key_rmb))
+			//if (is_key_going_up(key_rmb))
+			else
 			{
 				TwMouseButton(TW_MOUSE_RELEASED, TW_MOUSE_RIGHT);
 			}
-
+			**/
 			TwMouseWheel(get_mouse_wheel());
 			TwMouseMotion(mX, mY);
+
+			
 		}
 
 

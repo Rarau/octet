@@ -27,7 +27,8 @@ namespace octet {
 				// it inputs pos and uv from each corner
 				// it outputs gl_Position and uv_ to the rasterizer
 				const char vertex_shader[] = SHADER_STR(
-					varying vec2 uv_;
+				
+				varying vec2 uv_;
 				varying vec4 pos_;
 				varying vec4 lightPos_;
 
@@ -55,35 +56,39 @@ namespace octet {
 				uniform sampler2D sampler;
 				uniform sampler2D normalMapSampler;
 
-				uniform vec4 ambientColor = vec4(0.160f, 0.160f, 0.310f, 0.0f);
+				uniform vec4 ambientColor = vec4(0.160f, 0.160f, 0.310f, 1.0f);
 
-				uniform float k0 = 0.02152f;
-				uniform float k1 = 0.02965f;
-				uniform float k2 = 6.95f;
+				uniform float k0 = 0.2152f;
+				uniform float k1 = 0.12965f;
+				uniform float k2 = 1.95f;
 
 				void main() {
 					//vec4 lightPos = modelToProjection * lightPos;
 					//float atten = 1 / (k0 + k1 * distance(lightPos.xy, gl_FragCoord.xy));
 					float d = distance(lightPos_.xy, pos_.xy);
-					vec3 lightDir = pos_.xyz + vec3(0.0f, 0.0f, 0.15f) - lightPos_.xyz;
+					//lightPos_.z = 0.0f;
+					vec3 lightDir = pos_.xyz + vec3(0.0f, 0.0f, 0.015f) - lightPos_.xyz;
+					lightDir.z = 0.1f;
 					lightDir = normalize(lightDir);
 
 					float atten = 1 / (k0 + k1 * d + k2 * d * d);
-					vec4 lightColor = vec4(0.82f, 0.82f, 0.10f, 1.0f) * atten;
+					vec4 lightColor = vec4(0.82f, 0.82f, 0.80f, 1.0f) * atten;
 					lightColor.a = 1.0f;
 					vec4 diffColor = texture2D(sampler, uv_);
 					
 					// Normal extraction from normal map
 					vec4 normalMap = texture2D(normalMapSampler, uv_);
 					normalMap = normalize(normalMap * 2.0f - 1.0f);
-					normalMap.z *= -0.2f;
+					//normalMap.z *= -0.2f;
 					vec3 pixelNormal = normalize(normalMap.xyz);
 					float lightIntensity = clamp(dot(pixelNormal, lightDir), 0, 1);
 
 					vec4 fragColor = diffColor * lightColor * lightIntensity;
 					gl_FragColor = fragColor + ambientColor * diffColor;
-					gl_FragColor.a = diffColor.a;
 					//gl_FragColor = normalMap;
+					//if (pos_.z > lightPos_.z)
+					//	gl_FragColor = diffColor + ambientColor;
+					gl_FragColor.a = diffColor.a;
 
 					/*gl_FragColor = vec4(pos_.x, pos_.y, 0.0f, 1.0f) * 0.1f;
 					gl_FragColor.a = 1.0f;

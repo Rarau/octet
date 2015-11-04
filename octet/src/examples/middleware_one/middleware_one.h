@@ -31,7 +31,7 @@ namespace octet {
 		mouse_look mouse_look_helper;
 
 		collada_builder loader;
-
+		TwBar *myBar;
 	public:
 		/// this is called when we construct the class before everything is initialised.
 		middleware_one(int argc, char **argv) : app(argc, argv) {
@@ -39,6 +39,9 @@ namespace octet {
 
 		/// this is called once OpenGL is initialized
 		void app_init() {
+			TwInit(TW_OPENGL, NULL);
+			myBar = TwNewBar("NameOfMyTweakBar");
+
 			if (!loader.load_xml("assets/chest.dae")) {
 				printf("failed to load file!\n");
 				exit(1);
@@ -96,7 +99,7 @@ namespace octet {
 
 
 			mesh_instance* chest_instance = app_scene->add_shape(location, Chest_mesh, custom_mat, true);
-
+			chest_instance->get_node()->rotate(-90.0f, vec3(1, 0, 0));
 			/*
 			btVector3 cam_pos = btVector3(cam_node.get_position().x(), cam_node.get_position().y(), cam_node.get_position().z());
 			btVector3 cam_dir = btVector3(cam_node.get_z().x(), cam_node.get_z().y(), cam_node.get_z().z());
@@ -123,7 +126,7 @@ namespace octet {
 		
 		
 		int prev_mouse_x, prev_mouse_y;
-		vec2 get_mouse_delta(int& delta_x, int& delta_y)
+		void get_mouse_delta(int& delta_x, int& delta_y)
 		{
 			int mouse_x, mouse_y;
 			get_mouse_pos(mouse_x, mouse_y);
@@ -132,8 +135,11 @@ namespace octet {
 		}
 
 
+
 		/// this is called to draw the world
 		void draw_world(int x, int y, int w, int h) {
+			TwWindowSize(w, h);
+
 			int vx = 0, vy = 0;
 			get_viewport_size(vx, vy);
 			app_scene->begin_render(vx, vy);
@@ -223,13 +229,41 @@ namespace octet {
 			// draw the text overlay
 			overlay->render(vx, vy);
 
+			update_tweakbar();
+			TwDraw();  // draw the tweak bar(s)
+
 
 			mat4t &camera_to_world = cam->get_node()->access_nodeToParent();
 			mouse_look_helper.update(camera_to_world);
 		}
 
 
+		void update_tweakbar()
+		{
+			int mX, mY;
+			get_mouse_pos(mX, mY);
 
+			if (is_key_going_down(key_lmb))
+			{
+				TwMouseButton(TW_MOUSE_PRESSED, TW_MOUSE_LEFT);
+			}
+			if (is_key_going_up(key_lmb))
+			{
+				TwMouseButton(TW_MOUSE_RELEASED, TW_MOUSE_LEFT);
+			}
+
+			if (is_key_going_down(key_rmb))
+			{
+				TwMouseButton(TW_MOUSE_PRESSED, TW_MOUSE_RIGHT);
+			}
+			if (is_key_going_up(key_rmb))
+			{
+				TwMouseButton(TW_MOUSE_RELEASED, TW_MOUSE_RIGHT);
+			}
+
+			TwMouseWheel(get_mouse_wheel());
+			TwMouseMotion(mX, mY);
+		}
 
 
 	};

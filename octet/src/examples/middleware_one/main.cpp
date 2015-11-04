@@ -10,6 +10,7 @@
 #define OCTET_BULLET 1
 
 #include "../../octet.h"
+#include <AntTweakBar.h>
 
 #include "middleware_one.h"
 

@@ -44,12 +44,16 @@
     <OutDir>$(SolutionDir)..\..\..\bin\</OutDir>
     <IntDir>$(SolutionDir)..\..\..\bin\$(ProjectName)\$(Configuration)\</IntDir>
     <TargetName>$(ProjectName)_debug</TargetName>
+    <IncludePath>C:\Users\Nevak\Documents\GitHub\octet\octet\open_source\AntTweakBar\include;$(IncludePath)</IncludePath>
+    <LibraryPath>C:\Users\Nevak\Documents\GitHub\octet\octet\open_source\AntTweakBar\lib;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <LinkIncremental>false</LinkIncremental>
     <OutDir>$(SolutionDir)..\..\..\bin\</OutDir>
     <IntDir>$(SolutionDir)..\..\..\bin\$(ProjectName)\$(Configuration)\</IntDir>
     <TargetName>$(ProjectName)</TargetName>
+    <IncludePath>C:\Users\Nevak\Documents\GitHub\octet\octet\open_source\AntTweakBar\include;$(IncludePath)</IncludePath>
+    <LibraryPath>C:\Users\Nevak\Documents\GitHub\octet\octet\open_source\AntTweakBar\lib;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <ClCompile>

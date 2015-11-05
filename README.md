@@ -1,6 +1,6 @@
 # Physics Playground and Toon Shader (for Octet)
 
-This is a demo project for the first assignment of Tools and Middleware module.
+This is a demo project for the first assignment of **Tools and Middleware** module.
 
 Mainly it focuses on the usage of bullet physics engine and its different types of **joints** and mouse picking using **raycast**.
 

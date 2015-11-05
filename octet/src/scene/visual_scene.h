@@ -301,6 +301,12 @@ namespace octet { namespace scene {
 		world->addConstraint(constraint);
 	}
 #endif
+#ifdef OCTET_BULLET
+	void add_spring(btGeneric6DofSpringConstraint *constraint)
+	{
+		world->addConstraint(constraint);
+	}
+#endif
     /// helper to add a mesh to a scene and also to create the corresponding physics object
     mesh_instance *add_shape(mat4t_in mat, mesh *msh, material *mtl, bool is_dynamic=false, float mass=1, collison_shape_t *shape=NULL) {
       scene_node *node = new scene_node(this);

@@ -42,6 +42,10 @@ namespace octet {
 		middleware_one(int argc, char **argv) : app(argc, argv) {
 		}
 
+		TwButtonCallback joint_click(void * clientData) {
+
+		}
+
 		/// this is called once OpenGL is initialized
 		void app_init() {
 			TwInit(TW_OPENGL, NULL);
@@ -99,6 +103,9 @@ namespace octet {
 			
 
 			sphere_instance = add_sphere(vec3(0.0f, 4.5f, 0.0f));
+
+			add_sphere(vec3(10.0f, 4.5f, 0.0f));
+
 			mesh_instance* sphere_instance_2 = add_sphere(vec3(0.0f, -2.5f, 0.0f));
 			//sphere_instance_2->get_node()->get_rigid_body()->setLinearFactor(btVector3(0, 0, 0));
 
@@ -111,10 +118,13 @@ namespace octet {
 			TwAddVarRO(myBar, "Mouse_scr_X", TW_TYPE_FLOAT, &(mouse_scr_pos.x()), " label='M_scr X' ");
 			TwAddVarRO(myBar, "Mouse_scr_Y", TW_TYPE_FLOAT, &(mouse_scr_pos.y()), " label='M_scr Y' ");
 
+			TwAddButton(selection_bar, "comment1", NULL, NULL, " label='Position' ");
 			TwAddVarRO(selection_bar, "Item_X", TW_TYPE_FLOAT, &(sel_pos.x()), " label='X' ");
 			TwAddVarRO(selection_bar, "Item_Y", TW_TYPE_FLOAT, &(sel_pos.y()), " label='Y' ");
 			TwAddVarRO(selection_bar, "Item_Z", TW_TYPE_FLOAT, &(sel_pos.z()), " label='Z' ");
 			//add_hinge_joint(sphere_instance->get_node(), sphere_instance_2->get_node(), btVector3(0.0f, 1.5f, 0.0f), btVector3(0.0f, 1.50f, 0.0f), btVector3(0.0f, 0.0f, 1.0f));
+
+			//TwAddButton(selection_bar, "Button", joint_click, NULL, " label='Run Forest' ");
 		}
 
 		void add_hinge_joint(scene_node* node_a, scene_node* node_b, btVector3 anchor_a, btVector3 anchor_b, btVector3 axis)
@@ -125,6 +135,23 @@ namespace octet {
 			btHingeConstraint *hinge = new btHingeConstraint(*rigidbody_a, *rigidbody_b, anchor_a, anchor_b, axis, axis, true);
 			hinge->setDbgDrawSize(btScalar(5.f));
 			app_scene->add_hinge(hinge);
+		}
+
+		void add_spring_joint(scene_node* node_a, scene_node* node_b)
+		{
+			btRigidBody *rigidbody_a = node_a->get_rigid_body();
+			btRigidBody *rigidbody_b = node_b->get_rigid_body();
+			btTransform frameInA, frameInB;
+			frameInA = btTransform::getIdentity();
+			frameInB = btTransform::getIdentity();
+
+			btGeneric6DofSpringConstraint *spring = new btGeneric6DofSpringConstraint(*rigidbody_a, *rigidbody_b, frameInA, frameInB, true);
+			//spring->setDamping(0, 1.0f);
+
+			spring->setDbgDrawSize(btScalar(5.f));
+			app_scene->add_spring(spring);
+
+			
 		}
 
 		mesh_instance* add_sphere(vec3 pos)
@@ -198,9 +225,17 @@ namespace octet {
 					cast_result.node->activate();
 					cast_result.node->apply_central_force((r.get_end() - r.get_start()).normalize() * 10.0f);
 
+					if (selected_node != NULL)
+					{
+						add_spring_joint(cast_result.node, selected_node);
+					}
+
 					selected_node = cast_result.node;
 				}
 			}
+
+
+
 			/*
 			if (is_key_going_down(key_rmb))
 			{

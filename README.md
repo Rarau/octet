@@ -1,25 +1,14 @@
-# octet
+# Physics Playground and Toon Shader (for Octet)
 
-Octet is a framework for teaching OpenGL and the rudiments of game programming such
-as Geometry construction, Shaders, Matrices, Rigid body Physics and Fluid dynamics.
+This is a demo project for the first assignment of Tools and Middleware module.
 
-It has a number of examples in the src/examples directory.
+Mainly it focuses on the usage of bullet physics engine and its different types of joints and mouse picking using raycast.
 
-To use with visual studio, fork this repository into your own account and then
-"Clone Into Desktop" using the GitHub tool and open one of the .sln files in src/examples.
+It also integrates a lightweight library (AntTweakBar) for drawing some UI elements which provide useful debug information.
 
-There is a python script for generating your own projects from a template.
+Finally a custom fragment shader has been developed to give the whole scene a caroonish look using a light ramp.
 
-From the octet directory run:
-
-packaging\make_example.py my_example
-
-To create your own project in src/examples
-
-Examples should also work with Xcode, although testing is a lot less thorough. If it does not work, send
-me a pull request with fixes, please...
-
-Octet is a bit unusual in that it does not use external libraries such as libjpeg or zlib.
-These are implemented in source form in the framework so that you can understand the code.
-The source of most academic libraries is almost unreadble, so we aim to help your understanding
-of coding codecs such as GIF, JPEG, ZIP and so on.
+The user can move around the scene using the following controls:
+	-Move around: WASD
+	-Look around: Hold right mouse button
+	-Drag objects: Left mouse button

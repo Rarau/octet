@@ -15,9 +15,6 @@ namespace octet {
 		// scene for drawing box
 		ref<visual_scene> app_scene;
 
-		// helper for drawing text
-		ref<text_overlay> overlay;
-
 		ref<material> custom_mat;
 
 
@@ -55,12 +52,13 @@ namespace octet {
 				printf("failed to load file!\n");
 				exit(1);
 			}
+
 			resource_dict dict;
 			loader.get_resources(dict);
 
 			// note that this call will dump the code below to log.txt
 			dict.dump_assets(log(""));
-			mesh *Chest_mesh = dict.get_mesh("Chest-mesh");
+			mesh *Chest_mesh = dict.get_mesh("Chest-mesh+ChestMaterial-material");
 			//image *chest_jpg = dict.get_image("chest_jpg");
 
 			mat4t location;
@@ -87,20 +85,6 @@ namespace octet {
 			
 
 
-			// create the overlay
-			overlay = new text_overlay();
-
-			// get the default font.
-			bitmap_font *font = overlay->get_default_font();
-
-			// create a box containing text (in pixels)
-			aabb bb(vec3(64.5f, -200.0f, 0.0f), vec3(256, 64, 0));
-			text = new mesh_text(font, "", &bb);
-
-			// add the mesh to the overlay.
-			overlay->add_mesh_text(text);
-
-
 			mat4t ground_location;
 			ground_location.translate(vec3(0, -10.0f, 0));
 
@@ -108,20 +92,10 @@ namespace octet {
 			app_scene->add_shape(ground_location, ground, custom_mat, false);
 
 
-			//mesh_instance* chest_instance = app_scene->add_shape(location, Chest_mesh, custom_mat, true);
+			mesh_instance* chest_instance = app_scene->add_shape(location, Chest_mesh, custom_mat, false);
 			//chest_instance->get_node()->rotate(-90.0f, vec3(1, 0, 0));
 
-			/*
 			
-			btVector3 cam_pos = btVector3(cam_node.get_position().x(), cam_node.get_position().y(), cam_node.get_position().z());
-			btVector3 cam_dir = btVector3(cam_node.get_z().x(), cam_node.get_z().y(), cam_node.get_z().z());
-
-			//app_scene->add_mesh_instance(new mesh_instance(node, box, red));
-			btCollisionWorld::ClosestRayResultCallback RayCallback(cam_pos, cam_pos + cam_dir * 10.0f);
-			
-			*/
-			
-			//btCollisionWorld::rayTest(cam_pos, cam_pos + cam_dir * 10.0f, RayCallback);
 			
 
 			sphere_instance = add_sphere(vec3(0.0f, 4.5f, 0.0f));
@@ -162,7 +136,6 @@ namespace octet {
 			location.rotateX90();
 
 			mesh_instance* sphere_instance = app_scene->add_shape(location, sphere, custom_mat, true);
-			//sphere_instance->get_node()->get_rigid_body()->setLinearFactor(btVector3(0, 0.5f, 0));
 
 			return sphere_instance;
 		}
@@ -201,16 +174,9 @@ namespace octet {
 			// draw the scene
 			app_scene->render((float)vx / vy);
 			
-			// tumble the box  (there is only one mesh instance)
-			scene_node *node = app_scene->get_mesh_instance(0)->get_node();
-			node->rotate(1, vec3(1, 0, 0));
-			node->rotate(1, vec3(0, 1, 0));
-
-			char score_text[32];
 			int mouse_x, mouse_y;
 			get_mouse_pos(mouse_x, mouse_y);
 
-			text->clear();
 			ray r = cam->get_ray(mouse_scr_pos.x(), mouse_scr_pos.y());
 			app_scene->set_render_debug_lines(true);
 
@@ -229,13 +195,13 @@ namespace octet {
 				if (cast_result.node != NULL) 
 				{
 					printf("HIT depth: %f\n", cast_result.depth);
-					//cast_result.node->activate();
-					//cast_result.node->apply_central_force((r.get_end() - r.get_start()).normalize() * 10.0f);
+					cast_result.node->activate();
+					cast_result.node->apply_central_force((r.get_end() - r.get_start()).normalize() * 10.0f);
 
 					selected_node = cast_result.node;
 				}
 			}
-
+			/*
 			if (is_key_going_down(key_rmb))
 			{
 				if (selected_node != NULL)
@@ -244,7 +210,7 @@ namespace octet {
 					selected_node->apply_central_force((r.get_end() - r.get_start()).normalize() * 10.0f);
 				}
 			}
-
+			*/
 			float cam_speed = 0.65f;
 			mouse_look_helper.set_enabled(is_key_down(key_rmb));
 
@@ -273,19 +239,7 @@ namespace octet {
 				cam->get_node()->translate(vec3(0, 1, 0) * cam_speed);
 			}
 
-			/*
-			if (is_key_down(key_down))
-			{
-				sphere_instance->get_node()->activate();
-				//sphere_instance->get_node()->apply_central_force(vec3(0, -1, 0) * 100.0f);
-				sphere_instance->get_node()->get_rigid_body()->applyCentralForce(btVector3(0, -1, 0) * 100.0f);
-			}
-			if (is_key_down(key_up))
-			{
-				sphere_instance->get_node()->activate();
-				sphere_instance->get_node()->apply_central_force(vec3(0,1,0) * 100.0f);
-			}
-			*/
+
 
 			// Update the camera controller
 			mat4t &camera_to_world = cam->get_node()->access_nodeToParent();

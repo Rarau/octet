@@ -75,7 +75,7 @@ namespace octet { namespace helpers {
 			{
 				//mouse_center_x = 0;
 				//mouse_center_y = 0;
-				//the_app->get_mouse_pos(mouse_center_x, mouse_center_y);
+				the_app->get_mouse_pos(mouse_center_x, mouse_center_y);
 			}
 			is_enabled = how;
 		}

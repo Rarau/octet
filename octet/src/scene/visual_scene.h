@@ -629,6 +629,7 @@ namespace octet { namespace scene {
 	void cast_ray_with_bullet(cast_result& result, const ray &the_ray)
 	{
 		result.mi = 0;
+		result.node = 0;
 		result.depth = rational(0, 0); 
 #ifdef OCTET_BULLET
 		// Start and End are vectors

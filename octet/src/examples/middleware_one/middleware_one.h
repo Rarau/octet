@@ -180,10 +180,8 @@ namespace octet {
 
 		bool enable_mouselook;
 		/// this is called to draw the world
-		void draw_world(int x, int y, int w, int h) {
-
-			TwWindowSize(w, h);
-
+		void draw_world(int x, int y, int w, int h)
+		{
 			if (selected_node != NULL)
 			{
 				sel_pos = selected_node->get_position();
@@ -231,22 +229,23 @@ namespace octet {
 				if (cast_result.node != NULL) 
 				{
 					printf("HIT depth: %f\n", cast_result.depth);
-					cast_result.node->apply_central_force((r.get_end() - r.get_start()).normalize() * 10.0f);
+					//cast_result.node->activate();
+					//cast_result.node->apply_central_force((r.get_end() - r.get_start()).normalize() * 10.0f);
 
 					selected_node = cast_result.node;
 				}
+			}
 
+			if (is_key_going_down(key_rmb))
+			{
+				if (selected_node != NULL)
+				{
+					selected_node->activate();
+					selected_node->apply_central_force((r.get_end() - r.get_start()).normalize() * 10.0f);
+				}
 			}
 
 			float cam_speed = 0.65f;
-
-
-			/*
-			if (is_key_going_down('ESC'))
-			{
-				enable_mouselook = !enable_mouselook;
-			}
-			*/
 			mouse_look_helper.set_enabled(is_key_down(key_rmb));
 
 			if (is_key_down('W'))
@@ -274,7 +273,7 @@ namespace octet {
 				cam->get_node()->translate(vec3(0, 1, 0) * cam_speed);
 			}
 
-
+			/*
 			if (is_key_down(key_down))
 			{
 				sphere_instance->get_node()->activate();
@@ -286,24 +285,13 @@ namespace octet {
 				sphere_instance->get_node()->activate();
 				sphere_instance->get_node()->apply_central_force(vec3(0,1,0) * 100.0f);
 			}
+			*/
 
-			//text->format("ray start: %f, %f, %f - end: %f, %f, %f\n ", r.get_start().x(), r.get_start().y(), r.get_start().z(), r.get_end().x(), r.get_end().y(), r.get_end().z());
-
-
-			//overlay->get_node()->translate(vec3(0.10f, 0.0f, 0.0f));
-			// convert it to a mesh.
-			//text->update();
-
-			// draw the text overlay
-			//overlay->render(vx, vy);
-
-			update_tweakbar();
-			TwDraw();  // draw the tweak bar(s)
-
-
+			// Update the camera controller
 			mat4t &camera_to_world = cam->get_node()->access_nodeToParent();
-
 			mouse_look_helper.update(camera_to_world);
+
+			update_tweakbar(w, h);
 		}
 
 		vec2 mouse_to_screen(int x, int y, int w, int h)
@@ -315,8 +303,10 @@ namespace octet {
 			return result;
 		}
 
-		void update_tweakbar()
+		void update_tweakbar(int w, int h)
 		{
+			TwWindowSize(w, h);
+
 			int mX, mY;
 			get_mouse_pos(mX, mY);
 
@@ -343,7 +333,7 @@ namespace octet {
 			TwMouseWheel(get_mouse_wheel());
 			TwMouseMotion(mX, mY);
 
-			
+			TwDraw();  // Draw the tweak bar(s)
 		}
 
 

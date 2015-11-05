@@ -9,6 +9,9 @@ It also integrates a lightweight **library** (AntTweakBar) for drawing some UI e
 Finally a custom **fragment shader** has been developed to give the whole scene a caroonish look using a light ramp.
 
 The user can move around the scene using the following controls:
-	-Move around: WASD
-	-Look around: Hold right mouse button
-	-Drag objects: Left mouse button
+
+	- Move around: WASD
+	
+	- Look around: Hold right mouse button
+	
+	- Drag objects: Left mouse button

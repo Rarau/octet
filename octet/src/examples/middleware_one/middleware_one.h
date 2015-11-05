@@ -31,11 +31,14 @@ namespace octet {
 		mouse_look mouse_look_helper;
 
 		collada_builder loader;
-		TwBar *myBar;
+		TwBar *myBar, *selection_bar;
 
 		vec3 pos;
 		int mouse_pos[2];
 		vec2 mouse_scr_pos;
+
+		scene_node * selected_node = 0;
+		vec3 sel_pos;
 
 	public:
 		/// this is called when we construct the class before everything is initialised.
@@ -46,6 +49,7 @@ namespace octet {
 		void app_init() {
 			TwInit(TW_OPENGL, NULL);
 			myBar = TwNewBar("Camera");
+			selection_bar = TwNewBar("Selection");
 
 			if (!loader.load_xml("assets/chest.dae")) {
 				printf("failed to load file!\n");
@@ -60,7 +64,7 @@ namespace octet {
 			//image *chest_jpg = dict.get_image("chest_jpg");
 
 			mat4t location;
-			location.translate(vec3(0, 0.0f, 0));
+			location.translate(vec3(0.0f, 0.0f, 0.0f));
 			location.rotateX90();
 
 
@@ -133,7 +137,9 @@ namespace octet {
 			TwAddVarRO(myBar, "Mouse_scr_X", TW_TYPE_FLOAT, &(mouse_scr_pos.x()), " label='M_scr X' ");
 			TwAddVarRO(myBar, "Mouse_scr_Y", TW_TYPE_FLOAT, &(mouse_scr_pos.y()), " label='M_scr Y' ");
 
-
+			TwAddVarRO(selection_bar, "Item_X", TW_TYPE_FLOAT, &(sel_pos.x()), " label='X' ");
+			TwAddVarRO(selection_bar, "Item_Y", TW_TYPE_FLOAT, &(sel_pos.y()), " label='Y' ");
+			TwAddVarRO(selection_bar, "Item_Z", TW_TYPE_FLOAT, &(sel_pos.z()), " label='Z' ");
 			//add_hinge_joint(sphere_instance->get_node(), sphere_instance_2->get_node(), btVector3(0.0f, 1.5f, 0.0f), btVector3(0.0f, 1.50f, 0.0f), btVector3(0.0f, 0.0f, 1.0f));
 		}
 
@@ -175,7 +181,13 @@ namespace octet {
 		bool enable_mouselook;
 		/// this is called to draw the world
 		void draw_world(int x, int y, int w, int h) {
+
 			TwWindowSize(w, h);
+
+			if (selected_node != NULL)
+			{
+				sel_pos = selected_node->get_position();
+			}
 
 			get_mouse_pos(mouse_pos[0], mouse_pos[1]);
 			mouse_scr_pos = mouse_to_screen(mouse_pos[0], mouse_pos[1], w, h);
@@ -204,9 +216,9 @@ namespace octet {
 			ray r = cam->get_ray(mouse_scr_pos.x(), mouse_scr_pos.y());
 			app_scene->set_render_debug_lines(true);
 
+			// Do mouse raycast when click
 			if (is_key_going_down(key_lmb))
 			{
-				printf("Ray\n");
 				btVector3 start = btVector3(r.get_start().x(), r.get_start().y(), r.get_start().z());
 				btVector3 end = btVector3(r.get_end().x(), r.get_end().y(), r.get_end().z());
 				app_scene->add_debug_line(r.get_start(), r.get_end());
@@ -214,11 +226,14 @@ namespace octet {
 				btCollisionWorld::ClosestRayResultCallback RayCallback(start, end);
 				visual_scene::cast_result cast_result;
 
-				app_scene->physics_cast(cast_result, r);
+				app_scene->cast_ray_with_bullet(cast_result, r);
 
-				if (cast_result.depth != NULL) 
+				if (cast_result.node != NULL) 
 				{
 					printf("HIT depth: %f\n", cast_result.depth);
+					cast_result.node->apply_central_force((r.get_end() - r.get_start()).normalize() * 10.0f);
+
+					selected_node = cast_result.node;
 				}
 
 			}
@@ -272,23 +287,23 @@ namespace octet {
 				sphere_instance->get_node()->apply_central_force(vec3(0,1,0) * 100.0f);
 			}
 
-			text->format("ray start: %f, %f, %f - end: %f, %f, %f\n ", r.get_start().x(), r.get_start().y(), r.get_start().z(), r.get_end().x(), r.get_end().y(), r.get_end().z());
+			//text->format("ray start: %f, %f, %f - end: %f, %f, %f\n ", r.get_start().x(), r.get_start().y(), r.get_start().z(), r.get_end().x(), r.get_end().y(), r.get_end().z());
 
 
 			//overlay->get_node()->translate(vec3(0.10f, 0.0f, 0.0f));
 			// convert it to a mesh.
-			text->update();
+			//text->update();
 
 			// draw the text overlay
-			overlay->render(vx, vy);
+			//overlay->render(vx, vy);
 
 			update_tweakbar();
 			TwDraw();  // draw the tweak bar(s)
 
 
 			mat4t &camera_to_world = cam->get_node()->access_nodeToParent();
-			//if (enable_mouselook)
-				mouse_look_helper.update(camera_to_world);
+
+			mouse_look_helper.update(camera_to_world);
 		}
 
 		vec2 mouse_to_screen(int x, int y, int w, int h)

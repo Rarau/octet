@@ -620,13 +620,16 @@ namespace octet { namespace scene {
 
     struct cast_result {
       mesh_instance *mi;
+	  scene_node* node;
       rational depth;
     };
 
 
 
-	void physics_cast(cast_result& result, const ray &the_ray)
+	void cast_ray_with_bullet(cast_result& result, const ray &the_ray)
 	{
+		result.mi = 0;
+		result.depth = rational(0, 0); 
 #ifdef OCTET_BULLET
 		// Start and End are vectors
 		btVector3 start = btVector3(the_ray.get_start().x(), the_ray.get_start().y(), the_ray.get_start().z());
@@ -637,16 +640,12 @@ namespace octet { namespace scene {
 		// Perform raycast
 		world->rayTest(start, end, RayCallback);
 
-		//btVector3 point;
-		//btVector3 normal;
-		if (RayCallback.hasHit()) {
-			//point = RayCallback.m_hitPointWorld;
-			//normal = RayCallback.m_hitNormalWorld;
-			//scene_node *node = (scene_node*)RayCallback.m_collisionObject->getUserPointer();
-			//node->apply_central_force(vec3(0.0f, 0.0f, 100.0f));
-			//printf("HIT_ \n");
-
+		if (RayCallback.hasHit())
+		{
+			scene_node *node = (scene_node*)RayCallback.m_collisionObject->getUserPointer();
+			
 			result.mi = node->get_mesh_instance();
+			result.node = node;
 			result.depth = RayCallback.m_hitPointWorld.distance(start);
 		}
 #endif

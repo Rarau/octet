@@ -32,8 +32,9 @@ namespace octet {
 
 		collada_builder loader;
 		TwBar *myBar;
-		float test = 4.0f;
-		float* camx;
+
+		vec3 pos;
+		int mouse_pos[2];
 
 	public:
 		/// this is called when we construct the class before everything is initialised.
@@ -43,7 +44,7 @@ namespace octet {
 		/// this is called once OpenGL is initialized
 		void app_init() {
 			TwInit(TW_OPENGL, NULL);
-			myBar = TwNewBar("NameOfMyTweakBar");
+			myBar = TwNewBar("Camera");
 
 			if (!loader.load_xml("assets/chest.dae")) {
 				printf("failed to load file!\n");
@@ -55,8 +56,10 @@ namespace octet {
 			// note that this call will dump the code below to log.txt
 			dict.dump_assets(log(""));
 			mesh *Chest_mesh = dict.get_mesh("Chest-mesh");
+			//image *chest_jpg = dict.get_image("chest_jpg");
+
 			mat4t location;
-			location.translate(vec3(0, 0, 0));
+			location.translate(vec3(0, 0.0f, 0));
 			location.rotateX90();
 
 
@@ -92,7 +95,6 @@ namespace octet {
 			// add the mesh to the overlay.
 			overlay->add_mesh_text(text);
 
-			sphere_instance = add_sphere(vec3(0.0f));
 
 			mat4t ground_location;
 			ground_location.translate(vec3(0, -10.0f, 0));
@@ -101,8 +103,8 @@ namespace octet {
 			app_scene->add_shape(ground_location, ground, custom_mat, false);
 
 
-			mesh_instance* chest_instance = app_scene->add_shape(location, Chest_mesh, custom_mat, true);
-			chest_instance->get_node()->rotate(-90.0f, vec3(1, 0, 0));
+			//mesh_instance* chest_instance = app_scene->add_shape(location, Chest_mesh, custom_mat, true);
+			//chest_instance->get_node()->rotate(-90.0f, vec3(1, 0, 0));
 
 			/*
 			
@@ -116,11 +118,19 @@ namespace octet {
 			
 			//btCollisionWorld::rayTest(cam_pos, cam_pos + cam_dir * 10.0f, RayCallback);
 			
-			camx = &(cam->get_node()->get_position().x());
-			
 
-			TwAddVarRO(myBar, "Cam_X", TW_TYPE_FLOAT, camx, " label='X' ");
-			//add_hinge_joint(sphere_instance->get_node(), chest_instance->get_node(), btVector3(1.0f, 0.0f, 0.0f), btVector3(1.0f, 0.0f, 0.0f), btVector3(0.0f, 1.0f, 0.0f));
+			sphere_instance = add_sphere(vec3(0.0f, 4.5f, 0.0f));
+			mesh_instance* sphere_instance_2 = add_sphere(vec3(0.0f, -2.5f, 0.0f));
+			sphere_instance_2->get_node()->get_rigid_body()->setLinearFactor(btVector3(0, 0, 0));
+
+			TwAddVarRO(myBar, "Cam_X", TW_TYPE_FLOAT, &(pos.x()), " label='X' ");
+			TwAddVarRO(myBar, "Cam_Y", TW_TYPE_FLOAT, &(pos.y()), " label='Y' ");
+			TwAddVarRO(myBar, "Cam_Z", TW_TYPE_FLOAT, &(pos.z()), " label='Z' ");
+			TwAddVarRO(myBar, "Mouse_X", TW_TYPE_INT32, &(mouse_pos[0]), " label='Mouse X' ");
+			TwAddVarRO(myBar, "Mouse_Y", TW_TYPE_INT32, &(mouse_pos[1]), " label='Mouse Y' ");
+
+
+			add_hinge_joint(sphere_instance->get_node(), sphere_instance_2->get_node(), btVector3(0.0f, 1.5f, 0.0f), btVector3(0.0f, 1.50f, 0.0f), btVector3(0.0f, 0.0f, 1.0f));
 		}
 
 		void add_hinge_joint(scene_node* node_a, scene_node* node_b, btVector3 anchor_a, btVector3 anchor_b, btVector3 axis)
@@ -135,7 +145,7 @@ namespace octet {
 
 		mesh_instance* add_sphere(vec3 pos)
 		{
-			mesh_sphere *sphere = new mesh_sphere(vec3(10.0f), 3.0f);
+			mesh_sphere *sphere = new mesh_sphere(pos, 1.0f);
 
 			mat4t location;
 			location.translate(pos);
@@ -158,12 +168,13 @@ namespace octet {
 		}
 
 
-
+		bool enable_mouselook;
 		/// this is called to draw the world
 		void draw_world(int x, int y, int w, int h) {
 			TwWindowSize(w, h);
-			camx = &(cam->get_node()->get_position().x());
 
+			get_mouse_pos(mouse_pos[0], mouse_pos[1]);
+			pos = cam->get_node()->get_position();
 			int vx = 0, vy = 0;
 			get_viewport_size(vx, vy);
 			app_scene->begin_render(vx, vy);
@@ -173,7 +184,7 @@ namespace octet {
 
 			// draw the scene
 			app_scene->render((float)vx / vy);
-
+			
 			// tumble the box  (there is only one mesh instance)
 			scene_node *node = app_scene->get_mesh_instance(0)->get_node();
 			node->rotate(1, vec3(1, 0, 0));
@@ -205,6 +216,12 @@ namespace octet {
 
 			float cam_speed = 0.65f;
 
+
+			/*
+			if (is_key_going_down('ESC'))
+			{
+				enable_mouselook = !enable_mouselook;
+			}*/
 			if (is_key_down('W'))
 			{
 				cam->get_node()->translate(-vec3(0,0,1) * cam_speed);
@@ -259,7 +276,8 @@ namespace octet {
 
 
 			mat4t &camera_to_world = cam->get_node()->access_nodeToParent();
-			mouse_look_helper.update(camera_to_world);
+			if (enable_mouselook)
+				mouse_look_helper.update(camera_to_world);
 		}
 
 

@@ -5,55 +5,12 @@
       <author>Blender User</author>
       <authoring_tool>Blender 2.66.1 r55078</authoring_tool>
     </contributor>
-    <created>2015-11-05T01:04:39</created>
-    <modified>2015-11-05T01:04:39</modified>
+    <created>2015-11-05T00:54:08</created>
+    <modified>2015-11-05T00:54:08</modified>
     <unit name="meter" meter="1"/>
     <up_axis>Z_UP</up_axis>
   </asset>
-  <library_images>
-    <image id="chest_jpg" name="chest_jpg">
-      <init_from>chest.jpg</init_from>
-    </image>
-  </library_images>
-  <library_effects>
-    <effect id="ChestMaterial-effect">
-      <profile_COMMON>
-        <technique sid="common">
-          <phong>
-            <emission>
-              <color sid="emission">0 0 0 1</color>
-            </emission>
-            <ambient>
-              <color sid="ambient">0 0 0 1</color>
-            </ambient>
-            <diffuse>
-              <color sid="diffuse">0.64 0.64 0.64 1</color>
-            </diffuse>
-            <specular>
-              <color sid="specular">0.5 0.5 0.5 1</color>
-            </specular>
-            <shininess>
-              <float sid="shininess">50</float>
-            </shininess>
-            <index_of_refraction>
-              <float sid="index_of_refraction">1</float>
-            </index_of_refraction>
-          </phong>
-        </technique>
-        <extra>
-          <technique profile="GOOGLEEARTH">
-            <double_sided>1</double_sided>
-          </technique>
-        </extra>
-      </profile_COMMON>
-      <extra><technique profile="MAX3D"><double_sided>1</double_sided></technique></extra>
-    </effect>
-  </library_effects>
-  <library_materials>
-    <material id="ChestMaterial-material" name="ChestMaterial">
-      <instance_effect url="#ChestMaterial-effect"/>
-    </material>
-  </library_materials>
+  <library_images/>
   <library_geometries>
     <geometry id="Chest-mesh" name="Chest">
       <mesh>
@@ -89,7 +46,7 @@
         <vertices id="Chest-mesh-vertices">
           <input semantic="POSITION" source="#Chest-mesh-positions"/>
         </vertices>
-        <polylist material="ChestMaterial-material" count="662">
+        <polylist count="662">
           <input semantic="VERTEX" source="#Chest-mesh-vertices" offset="0"/>
           <input semantic="NORMAL" source="#Chest-mesh-normals" offset="1"/>
           <input semantic="TEXCOORD" source="#Chest-mesh-map-0" offset="2" set="0"/>
@@ -105,15 +62,7 @@
     <visual_scene id="Scene" name="Scene">
       <node id="Chest" name="Chest" type="NODE">
         <matrix sid="transform">1 0 0 3.72529e-9 0 -1.62921e-7 -1 7.45058e-9 0 1 -1.62921e-7 -1.19209e-7 0 0 0 1</matrix>
-        <instance_geometry url="#Chest-mesh">
-          <bind_material>
-            <technique_common>
-              <instance_material symbol="ChestMaterial-material" target="#ChestMaterial-material">
-                <bind_vertex_input semantic="Chest-mesh-map-0" input_semantic="TEXCOORD" input_set="0"/>
-              </instance_material>
-            </technique_common>
-          </bind_material>
-        </instance_geometry>
+        <instance_geometry url="#Chest-mesh"/>
       </node>
     </visual_scene>
   </library_visual_scenes>

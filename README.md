@@ -6,7 +6,7 @@ Mainly it focuses on the usage of bullet physics engine and its different types 
 
 It also integrates a lightweight **library** (AntTweakBar) for drawing some UI elements which provide useful debug information.
 
-Finally a custom **fragment shader** has been developed to give the whole scene a caroonish look using a light ramp.
+Finally a custom **fragment shader** has been developed to give the whole scene a cartoonish look using a light ramp.
 
 The user can move around the scene using the following controls:
 

@@ -623,6 +623,35 @@ namespace octet { namespace scene {
       rational depth;
     };
 
+
+
+	void physics_cast(cast_result& result, const ray &the_ray)
+	{
+#ifdef OCTET_BULLET
+		// Start and End are vectors
+		btVector3 start = btVector3(the_ray.get_start().x(), the_ray.get_start().y(), the_ray.get_start().z());
+		btVector3 end = btVector3(the_ray.get_end().x(), the_ray.get_end().y(), the_ray.get_end().z());
+
+		btCollisionWorld::ClosestRayResultCallback RayCallback(start, end);
+
+		// Perform raycast
+		world->rayTest(start, end, RayCallback);
+
+		//btVector3 point;
+		//btVector3 normal;
+		if (RayCallback.hasHit()) {
+			//point = RayCallback.m_hitPointWorld;
+			//normal = RayCallback.m_hitNormalWorld;
+			//scene_node *node = (scene_node*)RayCallback.m_collisionObject->getUserPointer();
+			//node->apply_central_force(vec3(0.0f, 0.0f, 100.0f));
+			//printf("HIT_ \n");
+
+			result.mi = node->get_mesh_instance();
+			result.depth = RayCallback.m_hitPointWorld.distance(start);
+		}
+#endif
+	}
+
     /// brute force & ignorance ray cast.
     /// return the mesh instance and location of hits.
     /// todo: build a kd tree for mesh instance bbs & mesh triangles

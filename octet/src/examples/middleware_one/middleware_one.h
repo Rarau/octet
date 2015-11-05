@@ -35,6 +35,7 @@ namespace octet {
 
 		vec3 pos;
 		int mouse_pos[2];
+		vec2 mouse_scr_pos;
 
 	public:
 		/// this is called when we construct the class before everything is initialised.
@@ -99,7 +100,7 @@ namespace octet {
 			mat4t ground_location;
 			ground_location.translate(vec3(0, -10.0f, 0));
 
-			mesh_box * ground = new mesh_box(vec3(10.0f, 0.1f, 10.0f));
+			mesh_box * ground = new mesh_box(vec3(100.0f, 0.1f, 100.0f));
 			app_scene->add_shape(ground_location, ground, custom_mat, false);
 
 
@@ -121,7 +122,7 @@ namespace octet {
 
 			sphere_instance = add_sphere(vec3(0.0f, 4.5f, 0.0f));
 			mesh_instance* sphere_instance_2 = add_sphere(vec3(0.0f, -2.5f, 0.0f));
-			sphere_instance_2->get_node()->get_rigid_body()->setLinearFactor(btVector3(0, 0, 0));
+			//sphere_instance_2->get_node()->get_rigid_body()->setLinearFactor(btVector3(0, 0, 0));
 
 			TwAddVarRO(myBar, "Cam_X", TW_TYPE_FLOAT, &(pos.x()), " label='X' ");
 			TwAddVarRO(myBar, "Cam_Y", TW_TYPE_FLOAT, &(pos.y()), " label='Y' ");
@@ -129,8 +130,11 @@ namespace octet {
 			TwAddVarRO(myBar, "Mouse_X", TW_TYPE_INT32, &(mouse_pos[0]), " label='Mouse X' ");
 			TwAddVarRO(myBar, "Mouse_Y", TW_TYPE_INT32, &(mouse_pos[1]), " label='Mouse Y' ");
 
+			TwAddVarRO(myBar, "Mouse_scr_X", TW_TYPE_FLOAT, &(mouse_scr_pos.x()), " label='M_scr X' ");
+			TwAddVarRO(myBar, "Mouse_scr_Y", TW_TYPE_FLOAT, &(mouse_scr_pos.y()), " label='M_scr Y' ");
 
-			add_hinge_joint(sphere_instance->get_node(), sphere_instance_2->get_node(), btVector3(0.0f, 1.5f, 0.0f), btVector3(0.0f, 1.50f, 0.0f), btVector3(0.0f, 0.0f, 1.0f));
+
+			//add_hinge_joint(sphere_instance->get_node(), sphere_instance_2->get_node(), btVector3(0.0f, 1.5f, 0.0f), btVector3(0.0f, 1.50f, 0.0f), btVector3(0.0f, 0.0f, 1.0f));
 		}
 
 		void add_hinge_joint(scene_node* node_a, scene_node* node_b, btVector3 anchor_a, btVector3 anchor_b, btVector3 axis)
@@ -174,6 +178,8 @@ namespace octet {
 			TwWindowSize(w, h);
 
 			get_mouse_pos(mouse_pos[0], mouse_pos[1]);
+			mouse_scr_pos = mouse_to_screen(mouse_pos[0], mouse_pos[1], w, h);
+
 			pos = cam->get_node()->get_position();
 			int vx = 0, vy = 0;
 			get_viewport_size(vx, vy);
@@ -195,21 +201,24 @@ namespace octet {
 			get_mouse_pos(mouse_x, mouse_y);
 
 			text->clear();
-			ray r = cam->get_ray((float)(mouse_x), (float)(mouse_y));
+			ray r = cam->get_ray(mouse_scr_pos.x(), mouse_scr_pos.y());
+			app_scene->set_render_debug_lines(true);
 
-			if (is_key_going_down(' '))
+			if (is_key_going_down(key_lmb))
 			{
 				printf("Ray\n");
 				btVector3 start = btVector3(r.get_start().x(), r.get_start().y(), r.get_start().z());
 				btVector3 end = btVector3(r.get_end().x(), r.get_end().y(), r.get_end().z());
+				app_scene->add_debug_line(r.get_start(), r.get_end());
 
 				btCollisionWorld::ClosestRayResultCallback RayCallback(start, end);
 				visual_scene::cast_result cast_result;
 
-				app_scene->cast_ray(cast_result, r);
+				app_scene->physics_cast(cast_result, r);
 
-				if (cast_result.mi != NULL) {
-					printf("HIT\n");
+				if (cast_result.depth != NULL) 
+				{
+					printf("HIT depth: %f\n", cast_result.depth);
 				}
 
 			}
@@ -221,7 +230,10 @@ namespace octet {
 			if (is_key_going_down('ESC'))
 			{
 				enable_mouselook = !enable_mouselook;
-			}*/
+			}
+			*/
+			mouse_look_helper.set_enabled(is_key_down(key_rmb));
+
 			if (is_key_down('W'))
 			{
 				cam->get_node()->translate(-vec3(0,0,1) * cam_speed);
@@ -261,8 +273,7 @@ namespace octet {
 			}
 
 			text->format("ray start: %f, %f, %f - end: %f, %f, %f\n ", r.get_start().x(), r.get_start().y(), r.get_start().z(), r.get_end().x(), r.get_end().y(), r.get_end().z());
-			app_scene->set_render_debug_lines(true);
-			app_scene->add_debug_line(r.get_start(), r.get_end());
+
 
 			//overlay->get_node()->translate(vec3(0.10f, 0.0f, 0.0f));
 			// convert it to a mesh.
@@ -276,10 +287,18 @@ namespace octet {
 
 
 			mat4t &camera_to_world = cam->get_node()->access_nodeToParent();
-			if (enable_mouselook)
+			//if (enable_mouselook)
 				mouse_look_helper.update(camera_to_world);
 		}
 
+		vec2 mouse_to_screen(int x, int y, int w, int h)
+		{
+			vec2 result;
+			result.x() = ((float)x / (float)w) * 2.0f - 1.0f;
+			result.y() = -(((float)y / (float)h) * 2.0f - 1.0f);
+
+			return result;
+		}
 
 		void update_tweakbar()
 		{

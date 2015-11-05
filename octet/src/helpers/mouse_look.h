@@ -14,6 +14,9 @@ namespace octet { namespace helpers {
     bool invert_mouse;
     int mouse_center_x;
     int mouse_center_y;
+
+	bool is_enabled;
+
   public:
     mouse_look() {
       sensitivity = 200.0f / 360.0f;
@@ -26,6 +29,7 @@ namespace octet { namespace helpers {
       this->the_app = the_app;
       this->sensitivity = sensitivity;
       this->invert_mouse = invert_mouse;
+	  this->is_enabled = true;
       //the_app->disable_cursor();
     }
 
@@ -48,6 +52,8 @@ namespace octet { namespace helpers {
 
     /// called every frame to update the camera
     void update(mat4t &cameraToWorld) {
+		if (!is_enabled)
+			return;
       cameraToWorld.x() = vec4(1, 0, 0, 0);
       cameraToWorld.y() = vec4(0, 1, 0, 0);
       cameraToWorld.z() = vec4(0, 0, 1, 0);
@@ -60,5 +66,20 @@ namespace octet { namespace helpers {
       cameraToWorld.rotateY(angle_x);
       cameraToWorld.rotateX(invert_mouse ? -angle_y : angle_y);
     }
+
+	void set_enabled(bool how)
+	{
+		if (is_enabled != how)
+		{
+			if (how)
+			{
+				//mouse_center_x = 0;
+				//mouse_center_y = 0;
+				//the_app->get_mouse_pos(mouse_center_x, mouse_center_y);
+			}
+			is_enabled = how;
+		}
+	}
+
   };
 }}

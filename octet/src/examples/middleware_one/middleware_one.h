@@ -18,6 +18,7 @@ namespace octet {
 		ref<visual_scene> app_scene;
 
 		ref<material> custom_mat;
+		ref<material> ground_mat;
 
 
 		// text mesh object for overlay.
@@ -26,6 +27,8 @@ namespace octet {
 
 		ref<image> dif_texture;
 		ref<image> light_ramp;
+		ref<image> ground_diff;
+
 
 		mouse_look mouse_look_helper;
 
@@ -84,23 +87,26 @@ namespace octet {
 			app_scene->create_default_camera_and_lights();
 			cam = app_scene->get_camera_instance(0);
 
+			dif_texture = new image("assets/chest.gif");
+			ground_diff = new image("assets/ground_2.gif");
+			light_ramp = new image("assets/ramp_2.gif");
+
 			param_shader *shader = new param_shader("shaders/default.vs", "shaders/toon.fs");
 			custom_mat = new material(vec4(1, 1, 1, 1), shader);
-
-
-			dif_texture = new image("assets/chest.gif");
-			light_ramp = new image("assets/ramp_2.gif");
 
 			custom_mat->add_sampler(0, app_utils::get_atom("diffuse_sampler"), dif_texture, new sampler());
 			custom_mat->add_sampler(1, app_utils::get_atom("light_ramp"), light_ramp, new sampler());
 			
+			ground_mat = new material(vec4(1, 1, 1, 1), shader);
+			ground_mat->add_sampler(0, app_utils::get_atom("diffuse_sampler"), ground_diff, new sampler());
+			custom_mat->add_sampler(1, app_utils::get_atom("light_ramp"), light_ramp, new sampler());
 
 
 			mat4t ground_location;
 			ground_location.translate(vec3(0, -10.0f, 0));
 
 			mesh_box * ground = new mesh_box(vec3(100.0f, 0.1f, 100.0f));
-			app_scene->add_shape(ground_location, ground, custom_mat, false);
+			app_scene->add_shape(ground_location, ground, ground_mat, false);
 
 
 			mesh_instance* chest_instance = app_scene->add_shape(location, Chest_mesh, custom_mat, false);

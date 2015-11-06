@@ -4,7 +4,9 @@
 //
 // Modular Framework for OpenGLES2 rendering on multiple platforms.
 //
+
 namespace octet {
+
 	/// Scene containing a box with octet.
 	class middleware_one : public app {
 		// a texture for our text
@@ -42,10 +44,13 @@ namespace octet {
 		middleware_one(int argc, char **argv) : app(argc, argv) {
 		}
 
-		TwButtonCallback joint_click(void * clientData) {
 
+
+		static void TW_CALL joint_click(void *data) {
+			middleware_one* app = (middleware_one *)data;
+			scene_node * cam_node = app->cam->get_node();
+			app->add_sphere(cam_node->get_position() + cam_node->get_z() * 2.0f);
 		}
-
 		/// this is called once OpenGL is initialized
 		void app_init() {
 			TwInit(TW_OPENGL, NULL);
@@ -124,7 +129,7 @@ namespace octet {
 			TwAddVarRO(selection_bar, "Item_Z", TW_TYPE_FLOAT, &(sel_pos.z()), " label='Z' ");
 			//add_hinge_joint(sphere_instance->get_node(), sphere_instance_2->get_node(), btVector3(0.0f, 1.5f, 0.0f), btVector3(0.0f, 1.50f, 0.0f), btVector3(0.0f, 0.0f, 1.0f));
 
-			//TwAddButton(selection_bar, "Button", joint_click, NULL, " label='Run Forest' ");
+			TwAddButton(selection_bar, "Button", joint_click, this, " label='Add Sphere' ");
 		}
 
 		void add_hinge_joint(scene_node* node_a, scene_node* node_b, btVector3 anchor_a, btVector3 anchor_b, btVector3 axis)
@@ -191,7 +196,7 @@ namespace octet {
 			}
 		}
 		*/
-
+		public:
 		mesh_instance* add_sphere(vec3 pos)
 		{
 			mesh_sphere *sphere = new mesh_sphere(pos, 1.0f);

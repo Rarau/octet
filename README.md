@@ -12,9 +12,11 @@ The user can move around the scene using the following controls:
 
 	- Move around: WASD
 	
+	- Move up and down: Q and E
+	
 	- Look around: Hold right mouse button
 	
-	- Left mouse button: cliick 2 objects to add a spring joint between them
+	- Left mouse button: click 2 objects to add a spring joint between them
 
 By modifying the **data_mv.csv** the user can add spheres, boxes or chests in the specified positions.
 

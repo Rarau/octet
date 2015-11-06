@@ -105,9 +105,15 @@ namespace octet {
 			init_tweakbars();
 
 			init_from_csv();
+			
+			/*
+			mesh_instance* ceiling_ball = add_sphere(vec3(0.0f, 30.0f, 0.0f));
+			ceiling_ball->get_node()->get_rigid_body()->setLinearFactor(btVector3(0.0f,0.0f,0.0f));
 
-
-
+			mesh_instance* ceiling_ball_2 = add_sphere(vec3(0.0f, 10.0f, 0.0f));
+			
+			add_spring_joint(ceiling_ball->get_scene_node(), ceiling_ball_2->get_scene_node());
+			*/
 		}
 
 		void add_walls()
@@ -170,6 +176,7 @@ namespace octet {
 
 			btHingeConstraint *hinge = new btHingeConstraint(*rigidbody_a, *rigidbody_b, anchor_a, anchor_b, axis, axis, true);
 			hinge->setDbgDrawSize(btScalar(5.f));
+			
 			app_scene->add_hinge(hinge);
 		}
 
@@ -183,7 +190,8 @@ namespace octet {
 
 			btGeneric6DofSpringConstraint *spring = new btGeneric6DofSpringConstraint(*rigidbody_a, *rigidbody_b, frameInA, frameInB, true);
 			//spring->setDamping(0, 1.0f);
-
+			btVector3 low_limit = btVector3(0.0f, 1.0f, 0.0f);
+			spring->setLinearLowerLimit(low_limit);
 			spring->setDbgDrawSize(btScalar(5.f));
 			app_scene->add_spring(spring);	
 		}
@@ -358,12 +366,14 @@ namespace octet {
 				{
 					printf("HIT depth: %f\n", cast_result.depth);
 					cast_result.node->activate();
-					cast_result.node->apply_central_force((r.get_end() - r.get_start()).normalize() * 10.0f);
+					//cast_result.node->apply_central_force((r.get_end() - r.get_start()).normalize() * 600.0f);
 
+					
 					if (selected_node != NULL && selected_node != cast_result.node)
 					{
 						add_spring_joint(cast_result.node, selected_node);
 					}
+					
 
 					selected_node = cast_result.node;
 				}

@@ -58,6 +58,7 @@ namespace octet { namespace helpers {
 
 		if (!is_enabled)
 		{
+			// Track the mouse position even if the movement is disabled to avoid jumps
 			the_app->get_mouse_pos(prev_mouse[0], prev_mouse[1]);
 
 			return;
@@ -67,16 +68,10 @@ namespace octet { namespace helpers {
       cameraToWorld.z() = vec4(0, 0, 1, 0);
 
       int rx = 0, ry = 0;
-      //the_app->get_absolute_mouse_movement(rx, ry);
 	  the_app->get_mouse_pos(rx, ry);
-	  /*
-      float angle_x = (float)(mouse_center_x - rx) * sensitivity;
-      float angle_y = (float)(mouse_center_y - ry) * sensitivity;
-	  */
+
 	  total_x += (float)(rx - prev_mouse[0]) * -sensitivity * 0.65f;
 	  total_y += (float)(ry - prev_mouse[1]) * -sensitivity * 0.65f;
-	  //the_app->get_mouse_pos(mouse_center_x, mouse_center_y);
-	  printf("angle: %f \n", total_x);
 
 	  total_y = std::max(-90.0f, std::min(total_y, 90.0f));
 	  cameraToWorld.rotateY(total_x);
@@ -88,21 +83,7 @@ namespace octet { namespace helpers {
 
 	void set_enabled(bool how)
 	{
-		if (is_enabled != how)
-		{
-			if (how)
-			{
-				//mouse_center_x = 0;
-				//mouse_center_y = 0;
-				//the_app->enable_cursor();
-				the_app->get_mouse_pos(mouse_center_x, mouse_center_y);
-			}
-			else
-			{
-				//the_app->enable_cursor();
-			}
-			is_enabled = how;
-		}
+		is_enabled = how;
 	}
 
   };

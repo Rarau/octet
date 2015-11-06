@@ -107,7 +107,7 @@ namespace octet {
 			add_sphere(vec3(10.0f, 4.5f, 0.0f));
 
 			mesh_instance* sphere_instance_2 = add_sphere(vec3(0.0f, -2.5f, 0.0f));
-			//sphere_instance_2->get_node()->get_rigid_body()->setLinearFactor(btVector3(0, 0, 0));
+			sphere_instance_2->get_node()->get_rigid_body()->setLinearFactor(btVector3(0, 0, 0));
 
 			TwAddVarRO(myBar, "Cam_X", TW_TYPE_FLOAT, &(pos.x()), " label='X' ");
 			TwAddVarRO(myBar, "Cam_Y", TW_TYPE_FLOAT, &(pos.y()), " label='Y' ");
@@ -153,6 +153,44 @@ namespace octet {
 
 			
 		}
+
+		/*
+		void init_from_csv()
+		{
+			std::ifstream is("../test.csv");
+			if (is.bad())
+			{
+				printf("Error opening csv file\n");
+				return;
+			}
+			// store the line here
+			char buffer[2048];
+
+			// loop over lines
+			while (!is.eof()) {
+				is.getline(buffer, sizeof(buffer));
+
+				// loop over columns
+				char *b = buffer;
+				for (int col = 0;; ++col) {
+					char *e = b;
+					while (*e != 0 && *e != ',') ++e;
+
+					// now b -> e contains the chars in a column
+					if (col == 0) {
+						//names.emplace_back(b, e);
+
+					}
+					else if (col == 1) {
+						//score.push_back(std::atoi(b));
+					}
+
+					if (*e != ',') break;
+					b = e + 1;
+				}
+			}
+		}
+		*/
 
 		mesh_instance* add_sphere(vec3 pos)
 		{
@@ -225,7 +263,7 @@ namespace octet {
 					cast_result.node->activate();
 					cast_result.node->apply_central_force((r.get_end() - r.get_start()).normalize() * 10.0f);
 
-					if (selected_node != NULL)
+					if (selected_node != NULL && selected_node != cast_result.node)
 					{
 						add_spring_joint(cast_result.node, selected_node);
 					}
@@ -279,7 +317,7 @@ namespace octet {
 			// Update the camera controller
 			mat4t &camera_to_world = cam->get_node()->access_nodeToParent();
 			mouse_look_helper.update(camera_to_world);
-
+			//camera_to_world.rotateX(10.0f);
 			update_tweakbar(w, h);
 		}
 

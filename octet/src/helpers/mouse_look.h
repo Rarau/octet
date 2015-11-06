@@ -16,6 +16,7 @@ namespace octet { namespace helpers {
     int mouse_center_y;
 
 	bool is_enabled;
+	int prev_mouse[2];
 
   public:
     mouse_look() {
@@ -30,6 +31,8 @@ namespace octet { namespace helpers {
       this->sensitivity = sensitivity;
       this->invert_mouse = invert_mouse;
 	  this->is_enabled = true;
+	  the_app->get_mouse_pos(prev_mouse[0], prev_mouse[1]);
+
       //the_app->disable_cursor();
     }
 
@@ -49,22 +52,38 @@ namespace octet { namespace helpers {
     void set_sensitivity(float value) {
       sensitivity = value;
     }
-
-    /// called every frame to update the camera
+	float total_x = 0.0f, total_y = 0.0f;
+	/// called every frame to update the camera
     void update(mat4t &cameraToWorld) {
+
 		if (!is_enabled)
+		{
+			the_app->get_mouse_pos(prev_mouse[0], prev_mouse[1]);
+
 			return;
+		}
       cameraToWorld.x() = vec4(1, 0, 0, 0);
       cameraToWorld.y() = vec4(0, 1, 0, 0);
       cameraToWorld.z() = vec4(0, 0, 1, 0);
 
       int rx = 0, ry = 0;
-      the_app->get_absolute_mouse_movement(rx, ry);
+      //the_app->get_absolute_mouse_movement(rx, ry);
+	  the_app->get_mouse_pos(rx, ry);
+	  /*
       float angle_x = (float)(mouse_center_x - rx) * sensitivity;
       float angle_y = (float)(mouse_center_y - ry) * sensitivity;
-      angle_y = std::max(-90.0f, std::min(angle_y, 90.0f));
-      cameraToWorld.rotateY(angle_x);
-      cameraToWorld.rotateX(invert_mouse ? -angle_y : angle_y);
+	  */
+	  total_x += (float)(rx - prev_mouse[0]) * -sensitivity * 0.65f;
+	  total_y += (float)(ry - prev_mouse[1]) * -sensitivity * 0.65f;
+	  //the_app->get_mouse_pos(mouse_center_x, mouse_center_y);
+	  printf("angle: %f \n", total_x);
+
+	  total_y = std::max(-90.0f, std::min(total_y, 90.0f));
+	  cameraToWorld.rotateY(total_x);
+	  cameraToWorld.rotateX(invert_mouse ? -total_y : total_y);
+
+	  the_app->get_mouse_pos(prev_mouse[0], prev_mouse[1]);
+
     }
 
 	void set_enabled(bool how)
@@ -75,7 +94,12 @@ namespace octet { namespace helpers {
 			{
 				//mouse_center_x = 0;
 				//mouse_center_y = 0;
+				//the_app->enable_cursor();
 				the_app->get_mouse_pos(mouse_center_x, mouse_center_y);
+			}
+			else
+			{
+				//the_app->enable_cursor();
 			}
 			is_enabled = how;
 		}

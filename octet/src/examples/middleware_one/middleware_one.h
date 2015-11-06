@@ -49,8 +49,10 @@ namespace octet {
 		static void TW_CALL joint_click(void *data) {
 			middleware_one* app = (middleware_one *)data;
 			scene_node * cam_node = app->cam->get_node();
-			app->add_sphere(cam_node->get_position() + cam_node->get_z() * 2.0f);
+			app->add_sphere(cam_node->get_position() + cam_node->get_z() * -10.0f);
 		}
+
+
 		/// this is called once OpenGL is initialized
 		void app_init() {
 			TwInit(TW_OPENGL, NULL);
@@ -154,12 +156,10 @@ namespace octet {
 			//spring->setDamping(0, 1.0f);
 
 			spring->setDbgDrawSize(btScalar(5.f));
-			app_scene->add_spring(spring);
-
-			
+			app_scene->add_spring(spring);	
 		}
 
-		/*
+		
 		void init_from_csv()
 		{
 			std::ifstream is("../test.csv");
@@ -195,7 +195,7 @@ namespace octet {
 				}
 			}
 		}
-		*/
+		
 		public:
 		mesh_instance* add_sphere(vec3 pos)
 		{

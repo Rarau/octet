@@ -51,7 +51,7 @@ namespace octet {
 
 
 
-		static void TW_CALL joint_click(void *data) {
+		static void TW_CALL shoot_ball(void *data) {
 			middleware_one* app = (middleware_one *)data;
 			scene_node * cam_node = app->cam->get_node();
 			mesh_instance* ball = app->add_sphere(cam_node->get_position() + cam_node->get_z() * -10.0f);
@@ -160,7 +160,7 @@ namespace octet {
 			TwAddVarRO(selection_bar, "Item_Y", TW_TYPE_FLOAT, &(sel_pos.y()), " label='Y' ");
 			TwAddVarRO(selection_bar, "Item_Z", TW_TYPE_FLOAT, &(sel_pos.z()), " label='Z' ");
 
-			TwAddButton(selection_bar, "Button", joint_click, this, " label='Add Sphere' ");
+			TwAddButton(selection_bar, "Button", shoot_ball, this, " label='Shoot ball' ");
 		}
 
 		void add_hinge_joint(scene_node* node_a, scene_node* node_b, btVector3 anchor_a, btVector3 anchor_b, btVector3 axis)

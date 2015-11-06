@@ -14,8 +14,12 @@ The user can move around the scene using the following controls:
 	
 	- Look around: Hold right mouse button
 	
-	- Drag objects: Left mouse button
+	- Left mouse button: cliick 2 objects to add a spring joint between them
 
+By modifying the **data_mv.csv** the user can add spheres, boxes or chests in the specified positions.
+
+Clicking on the **Shoot Ball** button will shoot spheres in the camera direction.
+	
 Build Instructions
 ------------------
 

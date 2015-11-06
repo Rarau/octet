@@ -19,6 +19,7 @@ namespace octet {
 
 		ref<material> custom_mat;
 		ref<material> ground_mat;
+		ref<material> color_mat;
 
 
 		// text mesh object for overlay.
@@ -28,6 +29,7 @@ namespace octet {
 		ref<image> dif_texture;
 		ref<image> light_ramp;
 		ref<image> ground_diff;
+		ref<image> obj_texture;
 
 
 		mouse_look mouse_look_helper;
@@ -58,49 +60,35 @@ namespace octet {
 
 		/// this is called once OpenGL is initialized
 		void app_init() {
-			TwInit(TW_OPENGL, NULL);
-			myBar = TwNewBar("Camera");
-			selection_bar = TwNewBar("Selection");
 
-			if (!loader.load_xml("assets/chest.dae")) {
-				printf("failed to load file!\n");
-				exit(1);
-			}
-
-			resource_dict dict;
-			loader.get_resources(dict);
-
-			// note that this call will dump the code below to log.txt
-			dict.dump_assets(log(""));
-			mesh *Chest_mesh = dict.get_mesh("Chest-mesh+ChestMaterial-material");
-			//image *chest_jpg = dict.get_image("chest_jpg");
-
-			mat4t location;
-			location.translate(vec3(0.0f, 0.0f, 0.0f));
-			location.rotateX90();
-
-
-
-			mouse_look_helper.init(this, 200.0f / 360.0f, false);
 
 			app_scene = new visual_scene();
 			app_scene->create_default_camera_and_lights();
+			
 			cam = app_scene->get_camera_instance(0);
 
+			mouse_look_helper.init(this, 200.0f / 360.0f, false);
+
+			// Load textures
+			obj_texture = new image("assets/grass.jpg");
 			dif_texture = new image("assets/chest.gif");
 			ground_diff = new image("assets/ground_2.gif");
 			light_ramp = new image("assets/ramp_2.gif");
 
+			// Init shader and materials
 			param_shader *shader = new param_shader("shaders/default.vs", "shaders/toon.fs");
-			custom_mat = new material(vec4(1, 1, 1, 1), shader);
 
+			custom_mat = new material(vec4(1, 1, 1, 1), shader);
 			custom_mat->add_sampler(0, app_utils::get_atom("diffuse_sampler"), dif_texture, new sampler());
 			custom_mat->add_sampler(1, app_utils::get_atom("light_ramp"), light_ramp, new sampler());
 			
 			ground_mat = new material(vec4(1, 1, 1, 1), shader);
 			ground_mat->add_sampler(0, app_utils::get_atom("diffuse_sampler"), ground_diff, new sampler());
-			custom_mat->add_sampler(1, app_utils::get_atom("light_ramp"), light_ramp, new sampler());
+			ground_mat->add_sampler(1, app_utils::get_atom("light_ramp"), light_ramp, new sampler());
 
+			color_mat = new material(vec4(1, 1, 1, 1), shader);
+			color_mat->add_sampler(0, app_utils::get_atom("diffuse_sampler"), obj_texture, new sampler());
+			color_mat->add_sampler(1, app_utils::get_atom("light_ramp"), light_ramp, new sampler());
 
 			mat4t ground_location;
 			ground_location.translate(vec3(0, -10.0f, 0));
@@ -108,19 +96,34 @@ namespace octet {
 			mesh_box * ground = new mesh_box(vec3(100.0f, 0.1f, 100.0f));
 			app_scene->add_shape(ground_location, ground, ground_mat, false);
 
-
-			mesh_instance* chest_instance = app_scene->add_shape(location, Chest_mesh, custom_mat, false);
+			
 			//chest_instance->get_node()->rotate(-90.0f, vec3(1, 0, 0));
 
 			
 			
-
+			/*
 			sphere_instance = add_sphere(vec3(0.0f, 4.5f, 0.0f));
 
 			add_sphere(vec3(10.0f, 4.5f, 0.0f));
 
 			mesh_instance* sphere_instance_2 = add_sphere(vec3(0.0f, -2.5f, 0.0f));
 			sphere_instance_2->get_node()->get_rigid_body()->setLinearFactor(btVector3(0, 0, 0));
+			*/
+
+
+			init_tweakbars();
+
+			init_from_csv();
+
+
+
+		}
+
+		void init_tweakbars()
+		{
+			TwInit(TW_OPENGL, NULL);
+			myBar = TwNewBar("Camera");
+			selection_bar = TwNewBar("Selection");
 
 			TwAddVarRO(myBar, "Cam_X", TW_TYPE_FLOAT, &(pos.x()), " label='X' ");
 			TwAddVarRO(myBar, "Cam_Y", TW_TYPE_FLOAT, &(pos.y()), " label='Y' ");
@@ -135,7 +138,6 @@ namespace octet {
 			TwAddVarRO(selection_bar, "Item_X", TW_TYPE_FLOAT, &(sel_pos.x()), " label='X' ");
 			TwAddVarRO(selection_bar, "Item_Y", TW_TYPE_FLOAT, &(sel_pos.y()), " label='Y' ");
 			TwAddVarRO(selection_bar, "Item_Z", TW_TYPE_FLOAT, &(sel_pos.z()), " label='Z' ");
-			//add_hinge_joint(sphere_instance->get_node(), sphere_instance_2->get_node(), btVector3(0.0f, 1.5f, 0.0f), btVector3(0.0f, 1.50f, 0.0f), btVector3(0.0f, 0.0f, 1.0f));
 
 			TwAddButton(selection_bar, "Button", joint_click, this, " label='Add Sphere' ");
 		}
@@ -168,7 +170,7 @@ namespace octet {
 		
 		void init_from_csv()
 		{
-			std::ifstream is("../test.csv");
+			std::ifstream is("../../../assets/data_mw.csv");
 			if (is.bad())
 			{
 				printf("Error opening csv file\n");
@@ -180,42 +182,105 @@ namespace octet {
 			// loop over lines
 			while (!is.eof()) {
 				is.getline(buffer, sizeof(buffer));
-
+				vec3 pos;
+				char object_type = 0;
+				
 				// loop over columns
 				char *b = buffer;
 				for (int col = 0;; ++col) {
 					char *e = b;
 					while (*e != 0 && *e != ',') ++e;
 
-					// now b -> e contains the chars in a column
 					if (col == 0) {
-						//names.emplace_back(b, e);
-
+						object_type = b[0];
 					}
 					else if (col == 1) {
-						//score.push_back(std::atoi(b));
+						pos.x() = atof(b);
 					}
+					else if (col == 2) {
+						pos.y() = atof(b);
+					}
+					else if (col == 3) {
+						pos.z() = atof(b);
+					}
+
 
 					if (*e != ',') break;
 					b = e + 1;
 				}
+				// line ended
+				add_object(object_type, pos);
 			}
 		}
 		
 		public:
+
+
+
+		mesh_instance* add_object(char type, vec3 pos)
+		{
+			if (type == 'c')
+			{
+				return add_chest(pos);
+			}
+			else if (type == 's')
+			{
+				return add_sphere(pos);
+			}
+			else if (type == 'b')
+			{
+				return add_cube(pos);
+			}
+		}
+
+		mesh_instance* add_chest(vec3 pos)
+		{
+			if (!loader.load_xml("assets/chest.dae")) {
+				printf("failed to load file!\n");
+				exit(1);
+			}
+
+			resource_dict dict;
+			loader.get_resources(dict);
+
+			// note that this call will dump the code below to log.txt
+			dict.dump_assets(log(""));
+			mesh *Chest_mesh = dict.get_mesh("Chest-mesh+ChestMaterial-material");
+			//image *chest_jpg = dict.get_image("chest_jpg");
+
+			mat4t location;
+			location.translate(pos);
+			//location.rotateX90();
+			mesh_instance* chest_instance = app_scene->add_shape(location, Chest_mesh, custom_mat, false);
+
+			return chest_instance;
+
+		}
+
 		mesh_instance* add_sphere(vec3 pos)
 		{
 			mesh_sphere *sphere = new mesh_sphere(pos, 1.0f);
 
 			mat4t location;
 			location.translate(pos);
-			location.rotateX90();
 
-			mesh_instance* sphere_instance = app_scene->add_shape(location, sphere, custom_mat, true);
+
+			mesh_instance* sphere_instance = app_scene->add_shape(location, sphere, color_mat, true);
 
 			return sphere_instance;
 		}
 		
+		mesh_instance* add_cube(vec3 pos)
+		{
+			mat4t location;
+			location.translate(pos);
+
+			mesh_box *box = new mesh_box(vec3(1.0f), location);
+
+			mesh_instance* box_instance = app_scene->add_shape(location, box, color_mat, true);
+
+			return box_instance;
+		}
 		
 		int prev_mouse_x, prev_mouse_y;
 		void get_mouse_delta(int& delta_x, int& delta_y)

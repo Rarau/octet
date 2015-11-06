@@ -54,18 +54,21 @@ namespace octet {
 		static void TW_CALL joint_click(void *data) {
 			middleware_one* app = (middleware_one *)data;
 			scene_node * cam_node = app->cam->get_node();
-			app->add_sphere(cam_node->get_position() + cam_node->get_z() * -10.0f);
+			mesh_instance* ball = app->add_sphere(cam_node->get_position() + cam_node->get_z() * -10.0f);
+			ball->get_node()->apply_central_force(cam_node->get_z() * -1000.0f);
 		}
 
 
 		/// this is called once OpenGL is initialized
-		void app_init() {
+		void app_init() 
+		{
 
 
 			app_scene = new visual_scene();
 			app_scene->create_default_camera_and_lights();
 			
 			cam = app_scene->get_camera_instance(0);
+			cam->set_far_plane(750.0f);
 
 			mouse_look_helper.init(this, 200.0f / 360.0f, false);
 
@@ -76,40 +79,28 @@ namespace octet {
 			light_ramp = new image("assets/ramp_2.gif");
 
 			// Init shader and materials
+			float uv_tiling = 1.0f;
+
 			param_shader *shader = new param_shader("shaders/default.vs", "shaders/toon.fs");
 
 			custom_mat = new material(vec4(1, 1, 1, 1), shader);
 			custom_mat->add_sampler(0, app_utils::get_atom("diffuse_sampler"), dif_texture, new sampler());
 			custom_mat->add_sampler(1, app_utils::get_atom("light_ramp"), light_ramp, new sampler());
-			
+			custom_mat->add_uniform(&uv_tiling, app_utils::get_atom("uv_tiling"), GL_FLOAT, 1);
+
+			uv_tiling = 5.0f;
 			ground_mat = new material(vec4(1, 1, 1, 1), shader);
 			ground_mat->add_sampler(0, app_utils::get_atom("diffuse_sampler"), ground_diff, new sampler());
 			ground_mat->add_sampler(1, app_utils::get_atom("light_ramp"), light_ramp, new sampler());
+			ground_mat->add_uniform(&uv_tiling, app_utils::get_atom("uv_tiling"), GL_FLOAT, 1);
 
 			color_mat = new material(vec4(1, 1, 1, 1), shader);
 			color_mat->add_sampler(0, app_utils::get_atom("diffuse_sampler"), obj_texture, new sampler());
 			color_mat->add_sampler(1, app_utils::get_atom("light_ramp"), light_ramp, new sampler());
 
-			mat4t ground_location;
-			ground_location.translate(vec3(0, -10.0f, 0));
 
-			mesh_box * ground = new mesh_box(vec3(100.0f, 0.1f, 100.0f));
-			app_scene->add_shape(ground_location, ground, ground_mat, false);
 
-			
-			//chest_instance->get_node()->rotate(-90.0f, vec3(1, 0, 0));
-
-			
-			
-			/*
-			sphere_instance = add_sphere(vec3(0.0f, 4.5f, 0.0f));
-
-			add_sphere(vec3(10.0f, 4.5f, 0.0f));
-
-			mesh_instance* sphere_instance_2 = add_sphere(vec3(0.0f, -2.5f, 0.0f));
-			sphere_instance_2->get_node()->get_rigid_body()->setLinearFactor(btVector3(0, 0, 0));
-			*/
-
+			add_walls();
 
 			init_tweakbars();
 
@@ -117,6 +108,36 @@ namespace octet {
 
 
 
+		}
+
+		void add_walls()
+		{
+			mat4t ground_location;
+			ground_location.translate(vec3(0, -10.0f, 0));
+
+			mesh_box * ground = new mesh_box(vec3(100.0f, 0.1f, 100.0f));
+			app_scene->add_shape(ground_location, ground, ground_mat, false);
+			ground_location.loadIdentity();
+			ground_location.translate(vec3(0.0f, 0.0f, -100.0f));
+			ground_location.rotateX90();
+			app_scene->add_shape(ground_location, ground, ground_mat, false);
+
+			ground_location.loadIdentity();
+			ground_location.translate(vec3(+100.0f, 0.0f, 0.0f));
+			ground_location.rotateX90();
+			ground_location.rotateY90();
+			app_scene->add_shape(ground_location, ground, ground_mat, false);
+
+			ground_location.loadIdentity();
+			ground_location.translate(vec3(0.0f, 0.0f, 100.0f));
+			ground_location.rotateX90();
+			app_scene->add_shape(ground_location, ground, ground_mat, false);
+
+			ground_location.loadIdentity();
+			ground_location.translate(vec3(-100.0f, 0.0f, 0.0f));
+			ground_location.rotateX90();
+			ground_location.rotateY90();
+			app_scene->add_shape(ground_location, ground, ground_mat, false);
 		}
 
 		void init_tweakbars()

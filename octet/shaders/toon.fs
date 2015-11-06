@@ -8,7 +8,7 @@ uniform vec4 lighting[17];
 uniform int num_lights;
 uniform sampler2D diffuse_sampler;
 uniform sampler2D light_ramp;
-
+uniform float uv_tiling;
 uniform int num_spots;
 
 // inputs
@@ -19,7 +19,7 @@ varying vec4 color_;
 varying vec3 model_pos_;
 
 void main() {
-  vec4 diffuse = texture2D(diffuse_sampler, uv_);
+  vec4 diffuse = texture2D(diffuse_sampler, uv_ * uv_tiling);
   vec3 nnormal = normalize(normal_);
   vec3 npos = camera_pos_;
   vec3 diffuse_light = lighting[0].xyz;

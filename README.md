@@ -1,25 +1,11 @@
-# octet
+# TMX Map loader with normal mapping for Octet
 
-Octet is a framework for teaching OpenGL and the rudiments of game programming such
-as Geometry construction, Shaders, Matrices, Rigid body Physics and Fluid dynamics.
+This is a project for the Intro to Programming module in Goldsmiths's MsC in Computer Games and Entertainment.
 
-It has a number of examples in the src/examples directory.
+It consists on a simple demo for rendering TMX map files (http://doc.mapeditor.org/reference/tmx-map-format/) which can be authored with an external editor called Tiled Editor (http://www.mapeditor.org/)
 
-To use with visual studio, fork this repository into your own account and then
-"Clone Into Desktop" using the GitHub tool and open one of the .sln files in src/examples.
+Although the project runs inside the Octet framework, the rendering is done directly in OpenGL.
 
-There is a python script for generating your own projects from a template.
+Currently the program supports only one point light, however support for more could be added easily.
 
-From the octet directory run:
 
-packaging\make_example.py my_example
-
-To create your own project in src/examples
-
-Examples should also work with Xcode, although testing is a lot less thorough. If it does not work, send
-me a pull request with fixes, please...
-
-Octet is a bit unusual in that it does not use external libraries such as libjpeg or zlib.
-These are implemented in source form in the framework so that you can understand the code.
-The source of most academic libraries is almost unreadble, so we aim to help your understanding
-of coding codecs such as GIF, JPEG, ZIP and so on.

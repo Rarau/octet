@@ -93,7 +93,8 @@ namespace octet {
 		{
 
 			++anim_fr;
-			_sprite.set_sprite_index(rot + ((anim_fr / 4) % 4));
+			if (is_moving)
+				_sprite.set_sprite_index(rot + ((anim_fr / 4) % 4));
 
 			if ((prevPos - targetPos).length() > 0.001f)
 			{

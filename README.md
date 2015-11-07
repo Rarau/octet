@@ -1,6 +1,7 @@
 # Physics Playground and Toon Shader (for Octet)
 
 This is a demo project for the first assignment of **Tools and Middleware** module.
+![Alt text](https://raw.githubusercontent.com/Rarau/octet/middleware_one/octet/assets/Capture.JPG)
 
 Mainly it focuses on the usage of bullet physics engine and its different types of **joints** and mouse picking using **raycast**.
 

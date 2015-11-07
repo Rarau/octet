@@ -288,7 +288,7 @@ namespace octet {
 
 		mesh_instance* add_sphere(vec3 pos)
 		{
-			mesh_sphere *sphere = new mesh_sphere(pos, 1.0f);
+			mesh_sphere *sphere = new mesh_sphere(vec3(0), 1.0f);
 
 			mat4t location;
 			location.translate(pos);

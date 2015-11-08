@@ -30,3 +30,8 @@ Build Instructions
 ------------------
 
 The project requires the AntTweakBarBinaries to run. They can be downloaded from the official website or built from the project files included in the **octet/open_source** directory.
+
+Credits
+------------------
+Alejandro Saura
+Tin-Tin Chin

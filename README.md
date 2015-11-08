@@ -4,6 +4,10 @@ This is a project for the Intro to Programming module in Goldsmiths's MsC in Com
 
 ![Alt text](https://raw.githubusercontent.com/Rarau/octet/render_optimize/octet/assets/Capture.JPG)
 
+[linkname](https://www.youtube.com/watch?v=d5e402iU4A8)
+
+
+
 It consists on a simple demo for rendering TMX map files (http://doc.mapeditor.org/reference/tmx-map-format/) which can be authored with an external editor called Tiled Editor (http://www.mapeditor.org/)
 
 Essentially TMX files are an XML file defining 2D map properties based in tiles. These tiles are sorted in layers and can be drawn from different textures called tilesets.

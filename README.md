@@ -30,4 +30,9 @@ The normal maps have been generated using a filter included in Photoshop CC (Fil
 
 Currently the program supports only one point light, however support for more could be added easily.
 
+Credits
+------------------
 
+ - Alejandro Saura
+ - Tin-Tin Chin
+ - Mircea Catana

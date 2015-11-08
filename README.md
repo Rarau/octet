@@ -33,5 +33,6 @@ The project requires the AntTweakBarBinaries to run. They can be downloaded from
 
 Credits
 ------------------
-Alejandro Saura
-Tin-Tin Chin
+
+ - Alejandro Saura
+ - Tin-Tin Chin

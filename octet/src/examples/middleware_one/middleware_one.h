@@ -115,10 +115,11 @@ namespace octet {
 
 			mat4t location;
 
-			location.translate(vec3(0.0f, 10.0f, 0.0f));
+			location.translate(vec3(-20.0f, 1.0f, 0.0f));
 			scene_node* cube_1 = app_scene->add_shape_node(location, new mesh_box(vec3(1.0f)), color_mat, false);
 
-			location.translate(vec3(0.0f, -1.0f, 0.0f));
+			location.loadIdentity();
+			location.translate(vec3(-10.0f, 1.0f, 0.0f));
 			scene_node* cube_2 = app_scene->add_shape_node(location, new mesh_box(vec3(1.0f, 2.0f, 1.0f)), color_mat, true);
 
 			add_spring_joint(cube_1, cube_2, true);
@@ -202,14 +203,27 @@ namespace octet {
 			frameInA = btTransform::getIdentity();
 			frameInB = btTransform::getIdentity();
 
-			frameInA.setOrigin(btVector3(0.0f, 1.0f, 0.0f));
-			frameInB.setOrigin(btVector3(0.0f, 1.0f, 0.0f));
+			frameInA.setOrigin(btVector3(10., 0., 0.));
+			frameInB.setOrigin(btVector3(0., 0., 0.));
 
 
 			btGeneric6DofSpringConstraint *spring = new btGeneric6DofSpringConstraint(*rigidbody_a, *rigidbody_b, frameInA, frameInB, true);
 			//spring->setDamping(0, 1.0f);
 			btVector3 low_limit = btVector3(0.0f, 1.0f, 0.0f);
-			spring->setLinearLowerLimit(low_limit);
+			spring->setLinearUpperLimit(btVector3(5., 0., 0.));
+			spring->setLinearLowerLimit(btVector3(-5., 0., 0.));
+
+			spring->setAngularLowerLimit(btVector3(0.f, 0.f, -1.5f));
+			spring->setAngularUpperLimit(btVector3(0.f, 0.f, 1.5f));
+
+			spring->enableSpring(0, true);
+			spring->setStiffness(0, 39.478f);
+			spring->setDamping(0, 0.5f);
+			spring->enableSpring(5, true);
+			spring->setStiffness(5, 39.478f);
+			spring->setDamping(0, 0.3f);
+			spring->setEquilibriumPoint();
+			//spring->setLinearLowerLimit(low_limit);
 			spring->setDbgDrawSize(btScalar(5.f));
 			app_scene->add_spring(spring);	
 		}

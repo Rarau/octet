@@ -4,7 +4,7 @@ This is a project for the Intro to Programming module in Goldsmiths's MsC in Com
 
 ![Alt text](https://raw.githubusercontent.com/Rarau/octet/render_optimize/octet/assets/Capture.JPG)
 
-[linkname](https://www.youtube.com/watch?v=d5e402iU4A8)
+[See it in action here (Video link)](https://www.youtube.com/watch?v=d5e402iU4A8)
 
 
 

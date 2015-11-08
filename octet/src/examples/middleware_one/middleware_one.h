@@ -71,7 +71,7 @@ namespace octet {
 			mouse_look_helper.init(this, 200.0f / 360.0f, false);
 
 			// Load textures
-			obj_texture = new image("assets/grass.jpg");
+			obj_texture = new image("assets/wood.gif");
 			dif_texture = new image("assets/chest.gif");
 			ground_diff = new image("assets/ground_2.gif");
 			light_ramp = new image("assets/ramp_2.gif");
@@ -104,15 +104,8 @@ namespace octet {
 
 			init_from_csv();
 			
-			/*
-			mesh_instance* ceiling_ball = add_sphere(vec3(0.0f, 30.0f, 0.0f));
-			ceiling_ball->get_node()->get_rigid_body()->setLinearFactor(btVector3(0.0f,0.0f,0.0f));
 
-			mesh_instance* ceiling_ball_2 = add_sphere(vec3(0.0f, 10.0f, 0.0f));
-			
-			add_spring_joint(ceiling_ball->get_scene_node(), ceiling_ball_2->get_scene_node());
-			*/
-
+			//Setup demo spring
 			mat4t location;
 
 			location.translate(vec3(-20.0f, 1.0f, 0.0f));
@@ -123,8 +116,17 @@ namespace octet {
 			scene_node* cube_2 = app_scene->add_shape_node(location, new mesh_box(vec3(1.0f, 2.0f, 1.0f)), color_mat, true);
 
 			add_spring_joint(cube_1, cube_2, true);
-			//add_hinge_joint(cube_1, cube_2, btVector3(0.0f, -1.0f, 0.0f), btVector3(0.0f, 2.0f, 0.0f), btVector3(1.0f, 0.0f, 0.0f));
-			//add_point2point_joint(cube_1, cube_2, btVector3(0.0f, -1.0f, 0.0f));
+
+			//Setup demo hinge
+			location.loadIdentity();
+			location.translate(vec3(-20.0f, 4.0f, 0.0f));
+			scene_node* cube_3 = app_scene->add_shape_node(location, new mesh_box(vec3(4.0f, 8.0f, 1.0f)), color_mat, false);
+
+			location.loadIdentity();
+			location.translate(vec3(-18.0f, 4.0f, 0.0f));
+			scene_node* cube_4 = app_scene->add_shape_node(location, new mesh_box(vec3(4.0f, 8.0f, 1.0f)), color_mat, true);
+
+			add_hinge_joint(cube_3, cube_4);
 		}
 
 		void add_walls()
@@ -180,14 +182,19 @@ namespace octet {
 			TwAddButton(selection_bar, "Button", shoot_ball, this, " label='Shoot ball' ");
 		}
 
-		void add_hinge_joint(scene_node* node_a, scene_node* node_b, btVector3 anchor_a, btVector3 anchor_b, btVector3 axis)
+		void add_hinge_joint(scene_node* node_a, scene_node* node_b)
 		{
 			btRigidBody *rigidbody_a = node_a->get_rigid_body();
 			btRigidBody *rigidbody_b = node_b->get_rigid_body();
 
-			btHingeConstraint *hinge = new btHingeConstraint(*rigidbody_a, *rigidbody_b, anchor_a, anchor_b, axis, -axis, true);
+			btVector3 axisA(0.f, 1.f, 0.f);
+			btVector3 axisB(0.f, 1.f, 0.f);
+			btVector3 pivotA(-5.f, 0.f, 0.f);
+			btVector3 pivotB(5.f, 0.f, 0.f);
+
+			btHingeConstraint *hinge = new btHingeConstraint(*rigidbody_a, *rigidbody_b, pivotA, pivotB, axisA, axisB);
 			hinge->setDbgDrawSize(btScalar(5.f));
-			
+			hinge->setLimit(-3.146f * 0.5f, 3.1416f * 0.5f);
 			app_scene->add_hinge(hinge);
 		}
 

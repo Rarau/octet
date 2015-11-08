@@ -62,8 +62,6 @@ namespace octet {
 		/// this is called once OpenGL is initialized
 		void app_init() 
 		{
-
-
 			app_scene = new visual_scene();
 			app_scene->create_default_camera_and_lights();
 			
@@ -114,6 +112,18 @@ namespace octet {
 			
 			add_spring_joint(ceiling_ball->get_scene_node(), ceiling_ball_2->get_scene_node());
 			*/
+
+			mat4t location;
+
+			location.translate(vec3(0.0f, 10.0f, 0.0f));
+			scene_node* cube_1 = app_scene->add_shape_node(location, new mesh_box(vec3(1.0f)), color_mat, false);
+
+			location.translate(vec3(0.0f, -1.0f, 0.0f));
+			scene_node* cube_2 = app_scene->add_shape_node(location, new mesh_box(vec3(1.0f, 2.0f, 1.0f)), color_mat, true);
+
+			add_spring_joint(cube_1, cube_2, true);
+			//add_hinge_joint(cube_1, cube_2, btVector3(0.0f, -1.0f, 0.0f), btVector3(0.0f, 2.0f, 0.0f), btVector3(1.0f, 0.0f, 0.0f));
+			//add_point2point_joint(cube_1, cube_2, btVector3(0.0f, -1.0f, 0.0f));
 		}
 
 		void add_walls()
@@ -174,19 +184,27 @@ namespace octet {
 			btRigidBody *rigidbody_a = node_a->get_rigid_body();
 			btRigidBody *rigidbody_b = node_b->get_rigid_body();
 
-			btHingeConstraint *hinge = new btHingeConstraint(*rigidbody_a, *rigidbody_b, anchor_a, anchor_b, axis, axis, true);
+			btHingeConstraint *hinge = new btHingeConstraint(*rigidbody_a, *rigidbody_b, anchor_a, anchor_b, axis, -axis, true);
 			hinge->setDbgDrawSize(btScalar(5.f));
 			
 			app_scene->add_hinge(hinge);
 		}
 
-		void add_spring_joint(scene_node* node_a, scene_node* node_b)
+		void add_spring_joint(scene_node* node_a, scene_node* node_b, bool allow_static = false)
 		{
 			btRigidBody *rigidbody_a = node_a->get_rigid_body();
 			btRigidBody *rigidbody_b = node_b->get_rigid_body();
+			
+			if (!allow_static && (rigidbody_a->isStaticOrKinematicObject() || rigidbody_b->isStaticOrKinematicObject()))
+				return;
+
 			btTransform frameInA, frameInB;
 			frameInA = btTransform::getIdentity();
 			frameInB = btTransform::getIdentity();
+
+			frameInA.setOrigin(btVector3(0.0f, 1.0f, 0.0f));
+			frameInB.setOrigin(btVector3(0.0f, 1.0f, 0.0f));
+
 
 			btGeneric6DofSpringConstraint *spring = new btGeneric6DofSpringConstraint(*rigidbody_a, *rigidbody_b, frameInA, frameInB, true);
 			//spring->setDamping(0, 1.0f);
@@ -196,7 +214,14 @@ namespace octet {
 			app_scene->add_spring(spring);	
 		}
 
-		
+		void add_point2point_joint(scene_node* node_a, scene_node* node_b, btVector3& point_in_a, bool allow_static = false)
+		{
+			btRigidBody *rigidbody_a = node_a->get_rigid_body();
+			btRigidBody *rigidbody_b = node_b->get_rigid_body();
+
+			btPoint2PointConstraint *p2pc = new btPoint2PointConstraint(*rigidbody_a, *rigidbody_b, point_in_a, point_in_a);
+		}
+
 		void init_from_csv()
 		{
 			std::ifstream is("../../../assets/data_mw.csv");
@@ -304,10 +329,9 @@ namespace octet {
 			mat4t location;
 			location.translate(pos);
 
-			mesh_box *box = new mesh_box(vec3(1.0f), location);
+			mesh_box *box = new mesh_box(vec3(1.0f));
 
 			mesh_instance* box_instance = app_scene->add_shape(location, box, color_mat, true);
-
 			return box_instance;
 		}
 		
@@ -366,15 +390,15 @@ namespace octet {
 				{
 					printf("HIT depth: %f\n", cast_result.depth);
 					cast_result.node->activate();
-					//cast_result.node->apply_central_force((r.get_end() - r.get_start()).normalize() * 600.0f);
-
+					cast_result.node->apply_central_force((r.get_end() - r.get_start()).normalize() * 600.0f);
+					/*
 					
 					if (selected_node != NULL && selected_node != cast_result.node)
 					{
 						add_spring_joint(cast_result.node, selected_node);
 					}
 					
-
+					*/
 					selected_node = cast_result.node;
 				}
 			}

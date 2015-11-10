@@ -1,0 +1,7 @@
+//Axiom
+A
+//Iterations
+8
+//Rules
+AAB
+BA

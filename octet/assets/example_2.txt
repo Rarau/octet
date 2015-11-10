@@ -1,0 +1,7 @@
+//Axiom
+0
+//Iterations
+8
+//Rules
+111
+01[0]0

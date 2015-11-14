@@ -16,7 +16,9 @@ namespace octet {
 
 	  struct node
 	  {
-		  vec3 pos;
+		  vec2 start;
+		  vec2 end;
+
 		  vec3 color;
 	  };
 
@@ -42,8 +44,12 @@ namespace octet {
 	  dynarray<vec2> points;
 	  dynarray<string> example_files;
 	 
+	  dynarray<node> nodes;
 
 	  int cur_example = 0;
+
+	  l_system tree;
+
   public:
 	  
 	/// this is called when we construct the class before everything is initialised.
@@ -66,28 +72,15 @@ namespace octet {
 		example_files.push_back("../../../assets/example_2.txt");
 		example_files.push_back("../../../assets/example_3.txt");
 		example_files.push_back("../../../assets/example_4.txt");
-
+		/*
 		load_from_file(example_files[0]);
 		cur_iters = num_iterations;
 		generate_points(axiom, rules, cur_iters);
 		center_points(points);
-		/*
-		printf("Axiom %s\n", axiom);
-		printf("Rules: \n");
-
-		for (int j = 0; j < rules.size(); j++) {
-			printf("%s\n", rules[j]);
-		}
-
-		string result = axiom;
-
-		for (int j = 0; j < num_iterations; j++) {
-			result = l_system_utils::iterate(result, rules);
-			//printf("iteration %d: %s \n", j, result);
-		}
-
-		parse_iteration(result);
 		*/
+
+		tree.load_from_file(example_files[0]);
+
     }
 	int cur_iters = 1;
 
@@ -97,7 +90,7 @@ namespace octet {
 
 		for (int j = 0; j < num_iterations; j++) {
 			result = l_system_utils::iterate(result, rules);
-			printf("iteration %d: %s \n", j, result);
+			//printf("iteration %d: %s \n", j, result);
 		}
 
 		parse_iteration(result);
@@ -114,21 +107,50 @@ namespace octet {
 		start_pos = vec2(0.0f, -1.0f);
 		cur_pos = start_pos;
 		points.reset();
+		node n;
+		int size = data.size();
 
-		for (int j = 0; j < data.size(); j++) {
+		for (int j = 0; j < size; j++) {
 			switch (data[j])
 			{
 			case 'L':
+				cur_dir = cur_dir.normalize();
+				end_pos = cur_pos + cur_dir * branch_len;
+
+				
+				n.color = vec3(0.0f, 250.0f, 0.0f);
+				n.start = cur_pos;
+				n.end = end_pos;
+
+				nodes.push_back(n);
 
 				break;
 			case 'F':
 				// Draw a line segment
-				cur_dir = cur_dir.normalize();
+				/*cur_dir = cur_dir.normalize();
 				end_pos = cur_pos + cur_dir * branch_len;
 				//draw_line(cur_pos, end_pos);
 				points.push_back(cur_pos);
 				points.push_back(end_pos);
+				*/
+
+
+
+				cur_dir = cur_dir.normalize();
+				end_pos = cur_pos + cur_dir * branch_len;
+				
+				n.color = vec3(0.0f, 250.0f, 0.0f);
+				n.start = cur_pos;
+				n.end = end_pos;
+
+
+				nodes.push_back(n);
+
+				points.push_back(cur_pos);
+				points.push_back(end_pos);
 				cur_pos = end_pos;
+
+
 				break;
 
 			case '[':
@@ -161,7 +183,8 @@ namespace octet {
     /// this is called to draw the world
     void draw_world(int x, int y, int w, int h) {
 
-		draw_points();
+		tree.render();
+		//draw_points();
 
 		if (is_key_going_down(key_up))
 		{
@@ -234,7 +257,8 @@ namespace octet {
 		vec2 top_right = vec2(0.0f);
 		vec2 bottom_left = vec2(0.0f);
 
-		for (int i = 0; i < points.size(); i++)
+		int size = points.size();
+		for (int i = 0; i < size; i++)
 		{
 			top_right.x() = (points[i].x() < top_right.x()) ? top_right.x() : points[i].x();
 			top_right.y() = (points[i].y() < top_right.y()) ? top_right.y() : points[i].y();
@@ -262,11 +286,31 @@ namespace octet {
 		glBegin(GL_LINES);
 		glColor3f(250.0f, 0.0f, 0.0f);
 		//glColor3b(0x00, 0xff, 0x00);
-		for (int i = 0; i < points.size(); i++)
+		int size = points.size();
+		for (int i = 0; i < size; i++)
 		{
 			glVertex3f(points[i].x(), points[i].y(), 0);
 			++i;
 			glVertex3f(points[i].x(), points[i].y(), 0);
+		}
+
+		glEnd();
+
+		//mat4t modelToProjection = mat4t::build_projection_matrix(modelToWorld, cameraToWorld);
+	}
+
+	void draw_nodes()
+	{
+		// clear the background to black
+		glClearColor(0, 0, 0, 1);
+		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+		glBegin(GL_LINES);
+		glColor3f(250.0f, 0.0f, 0.0f);
+		//glColor3b(0x00, 0xff, 0x00);
+		for (int i = 0; i < nodes.size(); i++)
+		{
+			glVertex3f(nodes[i].start.x(), nodes[i].start.y(), 0);
+			glVertex3f(nodes[i].end.x(), nodes[i].end.y(), 0);
 		}
 
 		glEnd();

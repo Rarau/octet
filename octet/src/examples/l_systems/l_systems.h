@@ -6,6 +6,7 @@
 //
 
 #include <fstream>
+#include "tree_shader.h"
 #include "l_systems_utils.h"
 
 #define DEG_TO_RAD 0.01745329251f
@@ -21,6 +22,7 @@ namespace octet {
 
 		  vec3 color;
 	  };
+
 
 	  string axiom;
 	  dynarray<string> rules;
@@ -49,6 +51,8 @@ namespace octet {
 	  int cur_example = 0;
 
 	  l_system tree;
+
+	  mat4t cameraToWorld;
 
   public:
 	  
@@ -80,7 +84,8 @@ namespace octet {
 		*/
 
 		tree.load_from_file(example_files[0]);
-
+		cameraToWorld.loadIdentity();
+		cameraToWorld.translate(vec3(0.0f, 0.0f, 2.0f));
     }
 	int cur_iters = 1;
 
@@ -98,7 +103,6 @@ namespace octet {
 
 	void parse_iteration(string data)
 	{
-
 		vec2 end_pos;
 		cur_angle = 0.0f;
 
@@ -182,9 +186,52 @@ namespace octet {
 
     /// this is called to draw the world
     void draw_world(int x, int y, int w, int h) {
+		read_input();
 
-		tree.render();
-		//draw_points();
+		// set a viewport - includes whole window area
+		glViewport(x, y, w, h);
+
+		// clear the background to black
+		glClearColor(0, 0, 0, 1);
+		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+		// don't allow Z buffer depth testing (closer objects are always drawn in front of far ones)
+		glDisable(GL_DEPTH_TEST);
+
+		// allow alpha blend (transparency when alpha channel is 0)
+		glEnable(GL_BLEND);
+		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
+		tree.render(cameraToWorld);
+    }
+
+	float cam_speed = 1.0f;
+	void read_input()
+	{
+		if (is_key_down('W'))
+		{
+			cameraToWorld.translate(cameraToWorld.z() * -cam_speed);
+		}
+		if (is_key_down('S'))
+		{
+			cameraToWorld.translate(cameraToWorld.z() * cam_speed);
+		}
+		if (is_key_down('A'))
+		{
+			cameraToWorld.translate(cameraToWorld.x() * -cam_speed);
+		}
+		if (is_key_down('D'))
+		{
+			cameraToWorld.translate(cameraToWorld.x() * cam_speed);
+		}
+		if (is_key_down('Q'))
+		{
+			cameraToWorld.translate(cameraToWorld.y() * cam_speed);
+		}
+		if (is_key_down('E'))
+		{
+			cameraToWorld.translate(cameraToWorld.y() * -cam_speed);
+		}
 
 		if (is_key_going_down(key_up))
 		{
@@ -204,39 +251,32 @@ namespace octet {
 
 		if (is_key_going_down(key_right))
 		{
-			//cur_example = (cur_example + 1) & 0xFFFF;
-			//cur_example %= (example_files.size());
 			cur_example++;
 			if (cur_example >= example_files.size())
 				cur_example = 0;
 
-			load_from_file(example_files[cur_example]);
+			//load_from_file(example_files[cur_example]);
+			tree.load_from_file(example_files[cur_example]);
 
 			cur_iters = num_iterations;
-			generate_points(axiom, rules, cur_iters);
-			center_points(points);
+			//generate_points(axiom, rules, cur_iters);
+			//center_points(points);
 		}
 
 		if (is_key_going_down(key_left))
 		{
-			//cur_example = (cur_example - 1) & 0xFFFF;
 			cur_example--;
 			if (cur_example < 0)
 				cur_example = example_files.size() - 1;
-			//cur_example = abs(cur_example);
-			//cur_example %= (example_files.size());
-			load_from_file(example_files[cur_example]);
+
+			//load_from_file(example_files[cur_example]);
+			tree.load_from_file(example_files[cur_example]);
 
 			cur_iters = num_iterations;
-			generate_points(axiom, rules, cur_iters);
-			center_points(points);
+			//generate_points(axiom, rules, cur_iters);
+			//center_points(points);
 		}
-
-		//printf("cur_iters %d\n", cur_iters);
-
-		//cur_iters = cur_iters > 6 ? 6 : cur_iters;
-
-    }
+	}
 
 	void rotate_vec2(vec2& vec, float degrees)
 	{

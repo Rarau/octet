@@ -6,12 +6,14 @@ namespace octet
 	public:
 		mat4t transform;
 		vec3 color;
+		vec3 end;
 	};
 
 	class l_system
 	{
 	private:
 		mat4t transform;
+		tree_shader shader;
 
 		string starting_axiom;
 		dynarray<string> rules;
@@ -22,14 +24,26 @@ namespace octet
 
 		dynarray<l_node> states;
 		dynarray<l_node> nodes;
+		dynarray<float> vertices;
+
 		l_node cur_node;
 
 		float angle;
 		float branch_len = 0.1f;
 
 	public:
+		l_system()
+		{
+			//shader = new param_shader("shaders/default.vs", "shaders/simple_color.fs");
+			transform.loadIdentity();
+		}
+
 		void load_from_file(string file_name)
 		{
+			cur_node.transform = transform;
+
+			shader.init();
+
 			std::ifstream file(file_name);
 			if (file.bad())
 			{
@@ -95,6 +109,30 @@ namespace octet
 
 			generate_nodes_from_axiom(current_axiom);
 
+			mat4t t = transform;
+			t.invertQuick(t);
+
+			// Store all positions in our vertex array
+			int num_nodes = nodes.size();
+			vertices.reset();
+			for (int j = 0; j < num_nodes; j++) {
+				vertices.push_back(nodes[j].transform.row(3).x());
+				vertices.push_back(nodes[j].transform.row(3).y());
+				vertices.push_back(nodes[j].transform.row(3).z());
+
+				
+				vertices.push_back(nodes[j].end.x());
+				vertices.push_back(nodes[j].end.y());
+				vertices.push_back(nodes[j].end.z());
+				
+				//j++;
+				/*
+				vertices.push_back(nodes[j].transform.row(3).x());
+				vertices.push_back(nodes[j].transform.row(3).y());
+				vertices.push_back(nodes[j].transform.row(3).z());
+				*/
+			}
+			
 			printf("Current_axiom %s\n", current_axiom);
 		}
 
@@ -141,23 +179,16 @@ namespace octet
 
 		}
 
-		void render()
+		void render(mat4t &cameraToWorld)
 		{
-			glClearColor(0, 0, 0, 1);
-			glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-			glBegin(GL_LINES);
-			glColor3f(0.90f, 0.30f, 0.0f);
-			//glColor3b(0x00, 0xff, 0x00);
-			int size = nodes.size();
-			for (int i = 0; i < size; i++)
-			{
-				glVertex3f(nodes[i].transform.row(3).x(), nodes[i].transform.row(3).y(), 0);
-				//++i;
-				vec3 end = nodes[i].transform.row(3) + nodes[i].transform.y() * branch_len;
-				glVertex3f(end.x(), end.y(), 0.0f);
-			}
+			mat4t modelToProjection = mat4t::build_projection_matrix(transform, cameraToWorld);
+			shader.render(modelToProjection, 0);
 
-			glEnd();
+			glVertexAttribPointer(attribute_pos, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)vertices.data());
+			glEnableVertexAttribArray(attribute_pos);
+
+			glLineWidth(1.0f);
+			glDrawArrays(GL_POINTS, 0, nodes.size());
 		}
 		
 		void generate_nodes_from_axiom(string axiom)
@@ -193,7 +224,8 @@ namespace octet
 					node.transform = cur_node.transform;
 
 					node.color = vec3(0.0f, 250.0f, 0.0f);
-					node.transform.translate(cur_node.transform.y() * branch_len);
+					node.transform.translate(node.transform.y() * branch_len);
+					node.end = (cur_node.transform.y() * branch_len + cur_node.transform.row(3));
 
 					nodes.push_back(node);
 					cur_node = node;

@@ -217,6 +217,7 @@
     <ClInclude Include="..\..\shaders\texture_shader.h" />
     <ClInclude Include="l_systems.h" />
     <ClInclude Include="l_systems_utils.h" />
+    <ClInclude Include="tree_shader.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="..\..\resources\mesh_builder.inl" />

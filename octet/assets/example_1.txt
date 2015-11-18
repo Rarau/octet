@@ -5,4 +5,5 @@ F
 //Angle
 25.7
 //Rules
-FF[+F]F[-F]F
+F[+*F]F[-/F]F
+F[-/F]F[+*F]F

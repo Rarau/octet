@@ -8,12 +8,12 @@
 
 namespace octet {
 	namespace shaders {
-		class tree_shader : public shader {
+		class grid_shader : public shader {
 			// indices to use with glUniform*()
 
 			// index for model space to projection space matrix
 			GLuint modelToProjectionIndex_;
-			GLuint colorIndex_;
+			//GLuint colorIndex_;
 
 			// index for texture sampler
 			//GLuint samplerIndex_;
@@ -24,8 +24,8 @@ namespace octet {
 				// it inputs pos and uv from each corner
 				// it outputs gl_Position and uv_ to the rasterizer
 				const char vertex_shader[] = SHADER_STR(
-				//varying vec2 uv_;
-				varying vec3 color_;
+					//varying vec2 uv_;
+					varying vec3 color_;
 				//varying vec4 pos_;
 
 				attribute vec4 pos;
@@ -33,7 +33,7 @@ namespace octet {
 
 				uniform mat4 modelToProjection;
 
-				void main() { gl_Position = modelToProjection * pos; color_ = color; }
+				void main() { gl_Position = modelToProjection * pos; }
 				);
 
 				// this is the fragment shader
@@ -41,17 +41,16 @@ namespace octet {
 				// this is called for every fragment
 				// it outputs gl_FragColor, the color of the pixel and inputs uv_
 				const char fragment_shader[] = SHADER_STR(
-				//	varying vec2 uv_;
-				varying vec3 color_;
+					//	varying vec2 uv_;
 				//noperspective vec4 pos_;
 				//varying vec4 pos_;
 				//uniform vec3 pos_;
 
-				void main() 
+				void main()
 				{
-					//color = vec3(1);
-				//	gl_FragColor = texture2D(sampler, uv_); 
-					gl_FragColor = vec4(color_.x, color_.y, color_.z, 0.20f);
+					gl_FragColor = vec4(0.6f, 0.6f, 0.6f, 0.125f);
+					//	gl_FragColor = texture2D(sampler, uv_); 
+					//gl_FragColor = vec4(color_.x, color_.y, color_.z, 1.0f);
 					//gl_FragColor = vec4(pos.x, pos.y, pos.z, 1.0f);
 					//gl_FragColor = vec4(length(pos.xy - gl_FragCoord.xy) / 5.0f , 1.0f, 1.0f, 1.0f);
 				}
@@ -63,9 +62,9 @@ namespace octet {
 
 				// extract the indices of the uniforms to use later
 				modelToProjectionIndex_ = glGetUniformLocation(program(), "modelToProjection");
-				colorIndex_ = glGetUniformLocation(program(), "color");
-				
-				
+				//colorIndex_ = glGetUniformLocation(program(), "color");
+
+
 			}
 
 			void render(const mat4t &modelToProjection, int sampler) {
@@ -77,7 +76,7 @@ namespace octet {
 				glUniformMatrix4fv(modelToProjectionIndex_, 1, GL_FALSE, modelToProjection.get());
 
 				//glUniform3f(colorIndex_, color.x(), color.y(), color.z());
-				
+
 
 			}
 		};

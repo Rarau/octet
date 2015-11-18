@@ -1,3 +1,4 @@
+#include <math.h>
 
 namespace octet
 {
@@ -8,11 +9,9 @@ namespace octet
 		vec3 color;
 		vec3 end;
 	};
-
 	class l_system
 	{
 	private:
-		mat4t transform;
 		tree_shader shader;
 
 		string starting_axiom;
@@ -26,12 +25,19 @@ namespace octet
 		dynarray<l_node> nodes;
 		dynarray<float> vertices;
 
+		dynarray<float> angle_state;
+		dynarray<float> angle_state_y;
+
+
 		l_node cur_node;
 
 		float angle;
 		float branch_len = 0.1f;
 
 	public:
+		mat4t transform;
+
+
 		l_system()
 		{
 			//shader = new param_shader("shaders/default.vs", "shaders/simple_color.fs");
@@ -120,20 +126,26 @@ namespace octet
 				vertices.push_back(nodes[j].transform.row(3).y());
 				vertices.push_back(nodes[j].transform.row(3).z());
 
+				vertices.push_back(nodes[j].color.x());
+				vertices.push_back(nodes[j].color.y());
+				vertices.push_back(nodes[j].color.z());
 				
 				vertices.push_back(nodes[j].end.x());
 				vertices.push_back(nodes[j].end.y());
 				vertices.push_back(nodes[j].end.z());
-				
-				//j++;
-				/*
-				vertices.push_back(nodes[j].transform.row(3).x());
-				vertices.push_back(nodes[j].transform.row(3).y());
-				vertices.push_back(nodes[j].transform.row(3).z());
-				*/
+
+
+				vertices.push_back(nodes[j].color.x());
+				vertices.push_back(nodes[j].color.y());
+				vertices.push_back(nodes[j].color.z());
 			}
 			
-			printf("Current_axiom %s\n", current_axiom);
+			//printf("Current_axiom %s\n", current_axiom);
+		}
+
+		void regenerate()
+		{
+			generate_nodes();
 		}
 
 		static string apply_rules_to_axiom(string axiom, dynarray<string>& rules) {
@@ -141,27 +153,80 @@ namespace octet
 
 			// Go through each character of the axiom
 			int axiom_size = axiom.size();
+			int rules_size = rules.size();
+
+
+			dynarray<int> rule_count;
+			char prev_rule_char;
+			for (int j = 0; j < rules_size; j++)
+			{
+				if (j == 0)
+				{
+					rule_count.push_back(1);
+				}
+				else
+				{
+					// We found the same character (left hand side) so we increase the count
+					if (prev_rule_char == rules[j][0])
+					{
+						rule_count.back()++;
+					}
+					// We found a new character so we push a 1 (we only found one for now)
+					else
+					{
+						rule_count.push_back(1);
+					}
+				}
+				prev_rule_char = rules[j][0];
+			}
+
+			srand(time(NULL));
+			//random rnd;
+			//rnd.set_seed(time(NULL) / 1000);
+			//printf("time %d\n", time(NULL));
+
+			// Iterate through the axiom characters
 			for (int i = 0; i < axiom_size; i++) {
 				char current = axiom[i];
+				int rule_count_index = 0;
 
+				bool rule_found = 0;
 				// Find the rule to apply to the current character
 				int j = 0;
-				int rules_size = rules.size();
 				for (; j < rules_size; j++) {
+					/*
+					if (current != prev_rule_char)
+						rule_count_index++;
+						*/
+					//int min_random = 0;
+					//float half = (float)min_random / (float)random_num;
+
 					if (current == rules[j][0]) {
+
+						//int random_num = rnd.get(0, rule_count[rule_count_index]);
+						int random_num = rand() % rule_count[rule_count_index];
+						int rule_index = j + random_num;
+						//printf("Rule chosen %s\n", rules[rule_index]);
+
 						// We push the applied rule to the result string
-						for (int x = 1; x < rules[j].size(); x++) {
-							result.push_back(rules[j][x]);
+						for (int x = 1; x < rules[rule_index].size(); x++) {
+							result.push_back(rules[rule_index][x]);
 						}
 						// We found the rule so we stop searching
+						j += rule_count[rule_count_index];
+						rule_found = true;
+						rule_count_index++;
 						break;
 					}
 				}
 
 				// If no rule was found we just push the current character
-				if (j == rules.size()) {
+				if (j == rules.size() && !rule_found) {
 					result.push_back(current);
 				}
+
+				prev_rule_char = current;
+
 			}
 
 			// Add a null terminating character to the end of our result string
@@ -171,42 +236,57 @@ namespace octet
 
 		void iterate_forward()
 		{
-
+			cur_iters++;
+			generate_nodes();
 		}
 
 		void iterate_backwards()
 		{
-
+			cur_iters--;
+			generate_nodes();
 		}
 
 		void render(mat4t &cameraToWorld)
 		{
 			mat4t modelToProjection = mat4t::build_projection_matrix(transform, cameraToWorld);
+			//glBindAttribLocation(shader.program(), attribute_color, "color");
+			glBindAttribLocation(shader.program(), attribute_color, "color");
+
 			shader.render(modelToProjection, 0);
 
-			glVertexAttribPointer(attribute_pos, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)vertices.data());
+			glVertexAttribPointer(attribute_pos, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)vertices.data());
 			glEnableVertexAttribArray(attribute_pos);
+			
+			glVertexAttribPointer(attribute_color, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)(vertices.data() + 3));
+			glEnableVertexAttribArray(attribute_color);
 
-			glLineWidth(1.0f);
-			glDrawArrays(GL_POINTS, 0, nodes.size());
+			glLineWidth(2.0f);
+			glDrawArrays(GL_LINES, 0, nodes.size() << 1 );
 		}
 		
+		float cur_angle, cur_angle_y;
 		void generate_nodes_from_axiom(string axiom)
 		{
 			vec3 end_pos;
 
 			// Reset (clear) everything
 			nodes.reset();
+			angle_state.reset();
+			cur_angle = 0.0f;
+			cur_angle_y = 0.0f;
 
+
+			cur_node.transform = transform;
+			cur_node.end = vec3(0, 0, 0);
+			cur_node.color = vec3(0.5f);
 			l_node node;
-			cur_node.transform.loadIdentity();
 
 			int size = axiom.size();
 
 			for (int j = 0; j < size; j++) {
 				switch (axiom[j])
 				{
-					/*
+				/*
 				case 'L':
 					cur_dir = cur_dir.normalize();
 					end_pos = cur_pos + cur_dir * branch_len;
@@ -221,68 +301,135 @@ namespace octet
 					break;
 					*/
 				case 'F':
-					node.transform = cur_node.transform;
+				{
+					mat4t inverseTransform;
 
-					node.color = vec3(0.0f, 250.0f, 0.0f);
-					node.transform.translate(node.transform.y() * branch_len);
-					node.end = (cur_node.transform.y() * branch_len + cur_node.transform.row(3));
+					mat4t t = cur_node.transform;
+					t.loadIdentity();
+					t.translate(cur_node.end);
+
+					t.invertQuick(inverseTransform);
+					vec4 localForward = vec4(0.0f, 0.0f, 1.0f, 0.0f) * inverseTransform;
+					t.rotate(cur_angle, localForward.x(), localForward.y(), localForward.z());
+
+					vec4 up = vec4(0, 1, 0, 0);
+					t.rotate(cur_angle_y, up.x(), up.y(), up.z());
+
+					node.transform = t;
+
+					node.color = cur_node.color + vec3(0.0f, 0.0f, 0.1f);
+
+					
+					t.invertQuick(inverseTransform);
+					vec4 localUp = vec4(0, 1, 0, 0) * inverseTransform;
+					//vec3 localUp2 = t.y().normalize();
+
+					node.end = (t.row(3).xyz() + (localUp * branch_len));
 
 					nodes.push_back(node);
+
+
 					cur_node = node;
+				}
 
 					break;
+				
 
 				case '[':
+				{
 					// Save the current state
+					//l_node n = cur_node;
 					states.push_back(cur_node);
-					
+					angle_state.push_back(cur_angle);
+					angle_state_y.push_back(cur_angle_y);
+
+				}
+
 					break;
 
 				case ']':
+				{
 					// Load the saved state
+					//int last = states.size();
+					//cur_node = states[last - 1];
 					cur_node = states.back();
 					states.pop_back();
 
+
+					cur_angle = angle_state.back();
+					angle_state.pop_back();
+
+					cur_angle_y = angle_state_y.back();
+					angle_state_y.pop_back();
+				}
 					break;
 
 				case '+':
 					// Turn right
-					/*
-					mat4t mat;
-					mat.loadIdentity();
-					mat.rotateZ(angle);
-					
-					rotate_vec2(cur_dir, -angle);
-					*/
-					cur_node.transform.rotateZ(-angle);
+					cur_angle += angle;
 					break;
 
 				case '-':
 					// Turn left 
-					//rotate_vec2(cur_dir, angle);
-					cur_node.transform.rotateZ(angle);
+					cur_angle -= angle;
+					break;
+				case '*':
+					// Turn right
+					cur_angle_y += angle;
+					break;
 
+				case '/':
+					// Turn left 
+					cur_angle_y -= angle;
 					break;
 				}
 			}
 		}
 	};
 
+
+
 	class l_system_utils
 	{
 	public:
 
-		static string iterate(string axiom, dynarray<string>& rules) {
+		static string iterate(string axiom, dynarray<string>& rules) 
+		{
 			dynarray<char> result;
 
 			// Go through each character of the axiom
 			int axiom_size = axiom.size();
+			int rules_size = rules.size();
+			dynarray<int> rule_count;
+			char prev_rule_char;
+			for (int j = 0; j < rules_size; j++) 
+			{
+				if (j == 0)
+				{
+					rule_count.push_back(1);
+				}
+				else
+				{
+					// We found the same character (left hand side) so we increase the count
+					if (prev_rule_char == rules[j][0])
+					{
+						rule_count.back()++;
+					}
+					// We found a new character so we push a 1 (we only found one for now)
+					else
+					{
+						rule_count.push_back(1);
+					}
+				}
+				prev_rule_char = rules[j][0];
+			}
+
+
 			for (int i = 0; i < axiom_size; i++) {
 				char current = axiom[i];
 
 				// Find the rule to apply to the current character
 				int j = 0;
-				int rules_size = rules.size();
 				for (; j < rules_size; j++) {
 					if (current == rules[j][0]) {
 						// We push the applied rule to the result string
@@ -295,11 +442,10 @@ namespace octet
 				}
 
 				// If no rule was found we just push the current character
-				if (j == rules.size()) {
+				if (j == rules_size) {
 					result.push_back(current);
 				}
 			}
-
 			// Add a null terminating character to the end of our result string
 			result.push_back(0x00);
 			return string(result.data());

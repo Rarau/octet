@@ -7,7 +7,10 @@
 
 #include <fstream>
 #include "tree_shader.h"
+#include "grid_shader.h"
+
 #include "l_systems_utils.h"
+#include "grid.h"
 
 #define DEG_TO_RAD 0.01745329251f
 
@@ -51,6 +54,7 @@ namespace octet {
 	  int cur_example = 0;
 
 	  l_system tree;
+	  grid grid;
 
 	  mat4t cameraToWorld;
 
@@ -86,6 +90,8 @@ namespace octet {
 		tree.load_from_file(example_files[0]);
 		cameraToWorld.loadIdentity();
 		cameraToWorld.translate(vec3(0.0f, 0.0f, 2.0f));
+
+		grid.init(20, 20, 1.0f);
     }
 	int cur_iters = 1;
 
@@ -187,6 +193,7 @@ namespace octet {
     /// this is called to draw the world
     void draw_world(int x, int y, int w, int h) {
 		read_input();
+		update_camera();
 
 		// set a viewport - includes whole window area
 		glViewport(x, y, w, h);
@@ -196,57 +203,95 @@ namespace octet {
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 		// don't allow Z buffer depth testing (closer objects are always drawn in front of far ones)
-		glDisable(GL_DEPTH_TEST);
+		//glDisable(GL_DEPTH_TEST);
 
 		// allow alpha blend (transparency when alpha channel is 0)
 		glEnable(GL_BLEND);
 		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
+		grid.render(cameraToWorld);
 		tree.render(cameraToWorld);
     }
 
-	float cam_speed = 1.0f;
-	void read_input()
+	float cam_speed = -0.250f;
+	int prev_x = 0, prev_y = 0;
+	void update_camera()
 	{
+		mat4t worldToCamera;
+		cameraToWorld.invertQuick(worldToCamera);
+
 		if (is_key_down('W'))
 		{
-			cameraToWorld.translate(cameraToWorld.z() * -cam_speed);
+			//cameraToWorld.translate(cameraToWorld.z() * -cam_speed);
+			cameraToWorld.translate(vec4(0.0f, 0.0f, 1.0f, 0.0f) * cam_speed);
+
 		}
 		if (is_key_down('S'))
 		{
-			cameraToWorld.translate(cameraToWorld.z() * cam_speed);
+			//cameraToWorld.translate(cameraToWorld.z() * cam_speed);
+			cameraToWorld.translate(vec4(0.0f, 0.0f, 1.0f, 0.0f) * -cam_speed);
+
 		}
 		if (is_key_down('A'))
 		{
-			cameraToWorld.translate(cameraToWorld.x() * -cam_speed);
+			//cameraToWorld.translate(cameraToWorld.x() * -cam_speed);
+			cameraToWorld.translate(vec4(1.0f, 0.0f, 0.0f, 0.0f)  * cam_speed);
 		}
 		if (is_key_down('D'))
 		{
-			cameraToWorld.translate(cameraToWorld.x() * cam_speed);
+			//cameraToWorld.translate(cameraToWorld.x() * cam_speed);
+			cameraToWorld.translate(vec4(1.0f, 0.0f, 0.0f, 0.0f)  * -cam_speed);
 		}
 		if (is_key_down('Q'))
 		{
 			cameraToWorld.translate(cameraToWorld.y() * cam_speed);
+			//cameraToWorld.translate(vec4(0.0f, 1.0f, 0.0f, 0.0f) * worldToCamera * cam_speed);
 		}
 		if (is_key_down('E'))
 		{
 			cameraToWorld.translate(cameraToWorld.y() * -cam_speed);
+			//cameraToWorld.translate(vec4(0.0f, 1.0f, 0.0f, 0.0f) * worldToCamera * -cam_speed);
 		}
+		if (is_key_down(key_space))
+		{
+			tree.regenerate();
+		}
+		int mouse_x, mouse_y;
+		get_mouse_pos(mouse_x, mouse_y);
+
+		tree.transform.rotateY(0.51f);
+
+		cameraToWorld.rotateY(-mouse_x + prev_x);
+
+		prev_x = mouse_x;
+		prev_y = mouse_y;
+	}
+
+	void read_input()
+	{
 
 		if (is_key_going_down(key_up))
 		{
+			/*
 			cur_iters++;
 			generate_points(axiom, rules, cur_iters);
 			center_points(points);
+			*/
+			tree.iterate_forward();
+
 		}
 
 		if (is_key_going_down(key_down))
 		{
+			/*
 			cur_iters--;
 			cur_iters = cur_iters < 1 ? 1 : cur_iters;
 
+			
 			generate_points(axiom, rules, cur_iters);
 			center_points(points);
+			*/
+			tree.iterate_backwards();
 		}
 
 		if (is_key_going_down(key_right))
@@ -344,8 +389,10 @@ namespace octet {
 		// clear the background to black
 		glClearColor(0, 0, 0, 1);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
 		glBegin(GL_LINES);
 		glColor3f(250.0f, 0.0f, 0.0f);
+
 		//glColor3b(0x00, 0xff, 0x00);
 		for (int i = 0; i < nodes.size(); i++)
 		{

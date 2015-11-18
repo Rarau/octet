@@ -11,6 +11,15 @@ namespace octet {
 	public:
 		mat4t transform;
 		vec3 color;
+
+		l_node()
+		{
+			//printf("COPY \n");
+		}
+		l_node(l_node& node)
+		{
+			printf("COPY \n");
+		}
 	};
   /// Scene containing a box with octet.
   class dynarray_test : public app {
@@ -47,13 +56,13 @@ namespace octet {
 
 	  printf("Nodes: \n");
 
-	  for (int i = 0; i < 100; i++)
+	 /* for (int i = 0; i < 100; i++)
 	  {
 		  printf("----\n");
 		  printf("Color %f\n", nodes[i].color.x());
 		  printf("X %f\n", nodes[i].transform.row(3).x());
 
-	  }
+	  }*/
     }
 
     /// this is called to draw the world

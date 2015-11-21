@@ -1,0 +1,10 @@
+//Axiom
+X
+//Iterations
+6
+//Angle
+25
+//Rules
+XF-[[X]/+X]+F[+/FX]-/X
+XF*+[[X]/-X]-F[+*FX]+*X
+]L]

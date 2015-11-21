@@ -5,6 +5,4 @@ F
 //Angle
 22.5
 //Rules
-FFF-[-*F+/F+**F]/+[+/F-*F-/F]
-FFF*+[+*F-/F-/F]-[-**F+//F/+F]
-
+FFF-[-F+F+F]+[+F-F-F]

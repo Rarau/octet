@@ -440,6 +440,9 @@
     <ClInclude Include="grid_shader.h">
       <Filter>Source Files</Filter>
     </ClInclude>
+    <ClInclude Include="text_helper.h">
+      <Filter>Source Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="..\..\resources\mesh_builder.inl">

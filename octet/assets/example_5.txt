@@ -1,8 +1,9 @@
 //Axiom
-F
+X
 //Iterations
-5
+7
 //Angle
-20
+25.7
 //Rules
-FF[+F]F[-F][F]
+XF[+X][-X]FX
+FFF

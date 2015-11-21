@@ -1,0 +1,9 @@
+//Axiom
+F
+//Iterations
+5
+//Angle
+20
+//Rules
+FC0F/F-[C1-F+F]+[C2+F-F]
+XC0F*F++[C1+F/F]+[C2-FF]

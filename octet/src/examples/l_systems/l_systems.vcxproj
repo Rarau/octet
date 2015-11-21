@@ -219,6 +219,7 @@
     <ClInclude Include="grid_shader.h" />
     <ClInclude Include="l_systems.h" />
     <ClInclude Include="l_systems_utils.h" />
+    <ClInclude Include="text_helper.h" />
     <ClInclude Include="tree_shader.h" />
   </ItemGroup>
   <ItemGroup>

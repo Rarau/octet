@@ -10,7 +10,9 @@
 #include "grid_shader.h"
 
 #include "l_systems_utils.h"
+#include "text_helper.h"
 #include "grid.h"
+
 
 #define DEG_TO_RAD 0.01745329251f
 
@@ -25,8 +27,7 @@ namespace octet {
 
 		  vec3 color;
 	  };
-
-
+	  
 	  string axiom;
 	  dynarray<string> rules;
 	  int num_iterations;
@@ -57,6 +58,14 @@ namespace octet {
 	  grid grid;
 
 	  mat4t cameraToWorld;
+	  text_helper info_text, help_text;
+
+	  // Camera configuration
+	  float cam_speed = 0.250f;
+	  float cam_rot_speed = 0.25f;
+	  int prev_x = 0, prev_y = 0;
+	  bool look_enabled = false;
+	  bool rotation_enabled = true;
 
   public:
 	  
@@ -67,230 +76,140 @@ namespace octet {
 
 
     /// this is called once OpenGL is initialized
-    void app_init() {
-
-		cur_angle = 0.0f;
-
-		cur_dir = vec2(0.0f, 1.0f);
-
-		start_pos = vec2(0.0f, -1.0f);
-		cur_pos = start_pos;
-
+    void app_init() 
+	{
 		example_files.push_back("../../../assets/example_1.txt");
 		example_files.push_back("../../../assets/example_2.txt");
 		example_files.push_back("../../../assets/example_3.txt");
 		example_files.push_back("../../../assets/example_4.txt");
-		/*
-		load_from_file(example_files[0]);
-		cur_iters = num_iterations;
-		generate_points(axiom, rules, cur_iters);
-		center_points(points);
-		*/
+		example_files.push_back("../../../assets/example_5.txt");
+		example_files.push_back("../../../assets/example_6.txt");
+		example_files.push_back("../../../assets/example_7.txt");
+		example_files.push_back("../../../assets/example_8.txt");
+		example_files.push_back("../../../assets/example_9.txt");
+		example_files.push_back("../../../assets/example_10.txt");
 
 		tree.load_from_file(example_files[0]);
+
 		cameraToWorld.loadIdentity();
-		cameraToWorld.translate(vec3(0.0f, 0.0f, 2.0f));
+		cameraToWorld.translate(vec3(0.0f, 1.25f, 2.75f));
+		cameraToWorld.rotateX(-5.0f);
 
 		grid.init(20, 20, 1.0f);
+		info_text.init();
+		help_text.init();
     }
-	int cur_iters = 1;
-
-	void generate_points(string axiom, dynarray<string>& rules, int num_iterations)
-	{
-		string result = axiom;
-
-		for (int j = 0; j < num_iterations; j++) {
-			result = l_system_utils::iterate(result, rules);
-			//printf("iteration %d: %s \n", j, result);
-		}
-
-		parse_iteration(result);
-	}
-
-	void parse_iteration(string data)
-	{
-		vec2 end_pos;
-		cur_angle = 0.0f;
-
-		cur_dir = vec2(0.0f, 1.0f);
-
-		start_pos = vec2(0.0f, -1.0f);
-		cur_pos = start_pos;
-		points.reset();
-		node n;
-		int size = data.size();
-
-		for (int j = 0; j < size; j++) {
-			switch (data[j])
-			{
-			case 'L':
-				cur_dir = cur_dir.normalize();
-				end_pos = cur_pos + cur_dir * branch_len;
-
-				
-				n.color = vec3(0.0f, 250.0f, 0.0f);
-				n.start = cur_pos;
-				n.end = end_pos;
-
-				nodes.push_back(n);
-
-				break;
-			case 'F':
-				// Draw a line segment
-				/*cur_dir = cur_dir.normalize();
-				end_pos = cur_pos + cur_dir * branch_len;
-				//draw_line(cur_pos, end_pos);
-				points.push_back(cur_pos);
-				points.push_back(end_pos);
-				*/
-
-
-
-				cur_dir = cur_dir.normalize();
-				end_pos = cur_pos + cur_dir * branch_len;
-				
-				n.color = vec3(0.0f, 250.0f, 0.0f);
-				n.start = cur_pos;
-				n.end = end_pos;
-
-
-				nodes.push_back(n);
-
-				points.push_back(cur_pos);
-				points.push_back(end_pos);
-				cur_pos = end_pos;
-
-
-				break;
-
-			case '[':
-				// Push position and angle
-				pos_state.push_back(cur_pos);
-				dir_state.push_back(cur_dir);
-				break;
-
-			case ']':
-				// Pop position and angle
-				cur_pos = pos_state.back();
-				cur_dir = dir_state.back();
-				pos_state.pop_back();
-				dir_state.pop_back();
-				break;
-
-			case '+':
-				// Turn right
-				rotate_vec2(cur_dir, -angle);
-				break;
-
-			case '-':
-				// Turn left 
-				rotate_vec2(cur_dir, angle);
-				break;
-			}
-		}
-	}
 
     /// this is called to draw the world
-    void draw_world(int x, int y, int w, int h) {
+    void draw_world(int x, int y, int w, int h) 
+	{
+		int vx = 0, vy = 0;
+		get_viewport_size(vx, vy);
+		//glViewport(0, 0, vx, vy);
+		glViewport(x, y, w, h);
+
+		if (rotation_enabled)
+		{
+			// Continuously rotate the tree
+			tree.transform.rotateY(0.251f);
+		}
+
 		read_input();
 		update_camera();
-
-		// set a viewport - includes whole window area
-		glViewport(x, y, w, h);
 
 		// clear the background to black
 		glClearColor(0, 0, 0, 1);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-		// don't allow Z buffer depth testing (closer objects are always drawn in front of far ones)
-		//glDisable(GL_DEPTH_TEST);
+		glDisable(GL_DEPTH_TEST);
 
 		// allow alpha blend (transparency when alpha channel is 0)
 		glEnable(GL_BLEND);
 		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
+		
+
 		grid.render(cameraToWorld);
 		tree.render(cameraToWorld);
+
+		char score_text[512];
+		tree.get_tree_info(score_text);
+		//sprintf(score_text, "score: %d   lives: %d\n", 15, 56);
+		//draw_text(texture_shader_, -1.75f, 2, 1.0f / 256, score_text);
+
+		
+		info_text.draw_text(cameraToWorld, -1.75f, 1.0f, 0.75f / 256, score_text);
+		help_text.draw_text(cameraToWorld, 1.75f, 1.0f, 0.5f / 256, "-WASD: Move\n-Q/E: Up/Down\n-Hold right mouse: Look\n");
+		help_text.draw_text(cameraToWorld, 1.75f, 0.5f, 0.5f / 256, "-Left/Right arrows: Examples\n-Up/Down arrows: Iterate");
+		help_text.draw_text(cameraToWorld, 1.75f, 0.0f, 0.5f / 256, "-Space bar: Regenerate tree\n -R: Toggle rotation");
+
     }
 
-	float cam_speed = -0.250f;
-	int prev_x = 0, prev_y = 0;
+
 	void update_camera()
 	{
-		mat4t worldToCamera;
-		cameraToWorld.invertQuick(worldToCamera);
+		//mat4t worldToCamera;
+		//cameraToWorld.invertQuick(worldToCamera);
 
+		// Camera controls
 		if (is_key_down('W'))
 		{
-			//cameraToWorld.translate(cameraToWorld.z() * -cam_speed);
-			cameraToWorld.translate(vec4(0.0f, 0.0f, 1.0f, 0.0f) * cam_speed);
-
+			cameraToWorld.translate(vec4(0.0f, 0.0f, 1.0f, 0.0f) * -cam_speed);
 		}
 		if (is_key_down('S'))
 		{
-			//cameraToWorld.translate(cameraToWorld.z() * cam_speed);
-			cameraToWorld.translate(vec4(0.0f, 0.0f, 1.0f, 0.0f) * -cam_speed);
-
+			cameraToWorld.translate(vec4(0.0f, 0.0f, 1.0f, 0.0f) * cam_speed);
 		}
 		if (is_key_down('A'))
 		{
-			//cameraToWorld.translate(cameraToWorld.x() * -cam_speed);
-			cameraToWorld.translate(vec4(1.0f, 0.0f, 0.0f, 0.0f)  * cam_speed);
+			cameraToWorld.translate(vec4(1.0f, 0.0f, 0.0f, 0.0f)  * -cam_speed);
 		}
 		if (is_key_down('D'))
 		{
-			//cameraToWorld.translate(cameraToWorld.x() * cam_speed);
-			cameraToWorld.translate(vec4(1.0f, 0.0f, 0.0f, 0.0f)  * -cam_speed);
+			cameraToWorld.translate(vec4(1.0f, 0.0f, 0.0f, 0.0f)  * cam_speed);
 		}
 		if (is_key_down('Q'))
 		{
 			cameraToWorld.translate(cameraToWorld.y() * cam_speed);
-			//cameraToWorld.translate(vec4(0.0f, 1.0f, 0.0f, 0.0f) * worldToCamera * cam_speed);
 		}
 		if (is_key_down('E'))
 		{
 			cameraToWorld.translate(cameraToWorld.y() * -cam_speed);
-			//cameraToWorld.translate(vec4(0.0f, 1.0f, 0.0f, 0.0f) * worldToCamera * -cam_speed);
 		}
-		if (is_key_down(key_space))
-		{
-			tree.regenerate();
-		}
+
+		look_enabled = is_key_down(key_rmb);
+
+		// Get and store the current mouse position
 		int mouse_x, mouse_y;
 		get_mouse_pos(mouse_x, mouse_y);
 
-		tree.transform.rotateY(0.51f);
 
-		cameraToWorld.rotateY(-mouse_x + prev_x);
+		if (look_enabled)
+		{
+			disable_cursor();
+			//vec3 cameraUp = vec3(0.0f, 1.0f, 0.0f);
+			cameraToWorld.rotateX((-mouse_y + prev_y) * cam_rot_speed);
+			//cameraToWorld.rotate(-mouse_x + prev_x, cameraUp.x(), cameraUp.y(), cameraUp.z());
+		}
+		if (is_key_going_up(key_rmb))
+		{
+			enable_cursor();
+		}
 
+		// Update the mouse position
 		prev_x = mouse_x;
 		prev_y = mouse_y;
 	}
 
 	void read_input()
 	{
-
 		if (is_key_going_down(key_up))
 		{
-			/*
-			cur_iters++;
-			generate_points(axiom, rules, cur_iters);
-			center_points(points);
-			*/
 			tree.iterate_forward();
-
 		}
 
 		if (is_key_going_down(key_down))
 		{
-			/*
-			cur_iters--;
-			cur_iters = cur_iters < 1 ? 1 : cur_iters;
-
-			
-			generate_points(axiom, rules, cur_iters);
-			center_points(points);
-			*/
 			tree.iterate_backwards();
 		}
 
@@ -300,12 +219,7 @@ namespace octet {
 			if (cur_example >= example_files.size())
 				cur_example = 0;
 
-			//load_from_file(example_files[cur_example]);
 			tree.load_from_file(example_files[cur_example]);
-
-			cur_iters = num_iterations;
-			//generate_points(axiom, rules, cur_iters);
-			//center_points(points);
 		}
 
 		if (is_key_going_down(key_left))
@@ -314,169 +228,23 @@ namespace octet {
 			if (cur_example < 0)
 				cur_example = example_files.size() - 1;
 
-			//load_from_file(example_files[cur_example]);
 			tree.load_from_file(example_files[cur_example]);
-
-			cur_iters = num_iterations;
-			//generate_points(axiom, rules, cur_iters);
-			//center_points(points);
 		}
-	}
 
-	void rotate_vec2(vec2& vec, float degrees)
-	{
-		float cs = cos(degrees * DEG_TO_RAD);
-		float sn = sin(degrees * DEG_TO_RAD);
-		float px = vec.x() * cs - vec.y() * sn;
-		float py = vec.x() * sn + vec.y() * cs;
-
-		vec.x() = px;
-		vec.y() = py;
-	}
-
-	void get_scale_and_midpoint(dynarray<vec2>& points, float& scale, vec2& midpoint)
-	{
-		scale = 0.0f;
-		midpoint = vec2(0.0f);
-
-		vec2 top_right = vec2(0.0f);
-		vec2 bottom_left = vec2(0.0f);
-
-		int size = points.size();
-		for (int i = 0; i < size; i++)
+		if (is_key_down(key_space))
 		{
-			top_right.x() = (points[i].x() < top_right.x()) ? top_right.x() : points[i].x();
-			top_right.y() = (points[i].y() < top_right.y()) ? top_right.y() : points[i].y();
-
-			bottom_left.x() = (points[i].x() > bottom_left.x()) ? bottom_left.x() : points[i].x();
-			bottom_left.y() = (points[i].y() > bottom_left.y()) ? bottom_left.y() : points[i].y();
+			tree.regenerate();
 		}
 
-		scale = (top_right - bottom_left).length();
-
-		printf("top_right %f, %f\n", top_right.x(), top_right.y());
-		printf("bottom_left %f, %f\n", bottom_left.x(), bottom_left.y());
-
-		printf("Scale of points: %f\n", scale);
-
-		midpoint = (top_right + bottom_left) * 0.5f;
-		//return scale;
-	}
-
-	void draw_points()
-	{
-		// clear the background to black
-		glClearColor(0, 0, 0, 1);
-		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-		glBegin(GL_LINES);
-		glColor3f(250.0f, 0.0f, 0.0f);
-		//glColor3b(0x00, 0xff, 0x00);
-		int size = points.size();
-		for (int i = 0; i < size; i++)
+		if (is_key_down('X'))
 		{
-			glVertex3f(points[i].x(), points[i].y(), 0);
-			++i;
-			glVertex3f(points[i].x(), points[i].y(), 0);
+			tree.randomize_color();
 		}
 
-		glEnd();
-
-		//mat4t modelToProjection = mat4t::build_projection_matrix(modelToWorld, cameraToWorld);
-	}
-
-	void draw_nodes()
-	{
-		// clear the background to black
-		glClearColor(0, 0, 0, 1);
-		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
-		glBegin(GL_LINES);
-		glColor3f(250.0f, 0.0f, 0.0f);
-
-		//glColor3b(0x00, 0xff, 0x00);
-		for (int i = 0; i < nodes.size(); i++)
+		if (is_key_going_down('R'))
 		{
-			glVertex3f(nodes[i].start.x(), nodes[i].start.y(), 0);
-			glVertex3f(nodes[i].end.x(), nodes[i].end.y(), 0);
-		}
-
-		glEnd();
-
-		//mat4t modelToProjection = mat4t::build_projection_matrix(modelToWorld, cameraToWorld);
-	}
-
-	// Resize the tree so that it fits the screen (normalize it) and center it
-	void center_points(dynarray<vec2>& points)
-	{
-		float scale;
-		vec2 center;
-		get_scale_and_midpoint(points, scale, center);
-
-		if (scale != 0.0f)
-			scale = 2.0f / scale;
-		else return;
-
-		for (int i = 0; i < points.size(); i++)
-		{
-			points[i] -= center;
-			points[i] *= scale;
+			rotation_enabled = !rotation_enabled;
 		}
 	}
-
-	void load_from_file(string file_name)
-	{
-		std::ifstream file(file_name);
-		if (file.bad())
-		{
-			printf("Error loading file: %s\n", file_name);
-			return;
-		}
-		else
-			printf("Success loading file: %s\n", file_name);
-
-		// store the line here
-		char buffer[256];
-
-		rules.reset();
-		pos_state.reset();
-		dir_state.reset();
-
-		int line_num = 0;
-		while (!file.eof())
-		{
-			file.getline(buffer, sizeof(buffer));
-			// Ignore "comments"
-			if (buffer[0] != '/')
-			{
-				if (line_num == 0)
-				{
-					axiom = buffer;
-				}
-				else if (line_num == 1)
-				{
-					num_iterations = atoi(buffer);
-				}
-				else if (line_num == 2)
-				{
-					angle = atof(buffer);
-				}
-				else if (line_num >= 3)
-				{
-					// +3 is to skip the 3 characters from 
-					// the left hand operand of the rule (for example "A->")
-					rules.push_back(buffer);
-				}
-				++line_num;
-			}
-		}
-
-		printf("Axiom %s\n", axiom);
-		printf("Rules: \n");
-
-		for (int j = 0; j < rules.size(); j++) {
-			printf("%s\n", rules[j]);
-		}
-	}
-
   };
 }

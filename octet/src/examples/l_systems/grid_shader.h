@@ -9,50 +9,31 @@
 namespace octet {
 	namespace shaders {
 		class grid_shader : public shader {
-			// indices to use with glUniform*()
 
 			// index for model space to projection space matrix
 			GLuint modelToProjectionIndex_;
-			//GLuint colorIndex_;
 
-			// index for texture sampler
-			//GLuint samplerIndex_;
 		public:
 			void init() {
 				// this is the vertex shader.
-				// it is called for each corner of each triangle
-				// it inputs pos and uv from each corner
-				// it outputs gl_Position and uv_ to the rasterizer
 				const char vertex_shader[] = SHADER_STR(
-					//varying vec2 uv_;
 					varying vec3 color_;
-				//varying vec4 pos_;
 
-				attribute vec4 pos;
-				attribute vec3 color;
+					attribute vec4 pos;
+					attribute vec3 color;
 
-				uniform mat4 modelToProjection;
+					uniform mat4 modelToProjection;
 
-				void main() { gl_Position = modelToProjection * pos; }
+					void main() { gl_Position = modelToProjection * pos; }
 				);
 
 				// this is the fragment shader
-				// after the rasterizer breaks the triangle into fragments
-				// this is called for every fragment
-				// it outputs gl_FragColor, the color of the pixel and inputs uv_
 				const char fragment_shader[] = SHADER_STR(
-					//	varying vec2 uv_;
-				//noperspective vec4 pos_;
-				//varying vec4 pos_;
-				//uniform vec3 pos_;
+
 
 				void main()
 				{
 					gl_FragColor = vec4(0.75f, 0.75f, 0.75f, 0.2125f);
-					//	gl_FragColor = texture2D(sampler, uv_); 
-					//gl_FragColor = vec4(color_.x, color_.y, color_.z, 1.0f);
-					//gl_FragColor = vec4(pos.x, pos.y, pos.z, 1.0f);
-					//gl_FragColor = vec4(length(pos.xy - gl_FragCoord.xy) / 5.0f , 1.0f, 1.0f, 1.0f);
 				}
 				);
 
@@ -62,9 +43,6 @@ namespace octet {
 
 				// extract the indices of the uniforms to use later
 				modelToProjectionIndex_ = glGetUniformLocation(program(), "modelToProjection");
-				//colorIndex_ = glGetUniformLocation(program(), "color");
-
-
 			}
 
 			void render(const mat4t &modelToProjection, int sampler) {
@@ -72,12 +50,7 @@ namespace octet {
 				shader::render();
 
 				// customize the program with uniforms
-				//glUniform1i(samplerIndex_, sampler);
 				glUniformMatrix4fv(modelToProjectionIndex_, 1, GL_FALSE, modelToProjection.get());
-
-				//glUniform3f(colorIndex_, color.x(), color.y(), color.z());
-
-
 			}
 		};
 	}

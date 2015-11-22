@@ -36,6 +36,7 @@ namespace octet
 		float angle;
 		float branch_len = 0.1f;
 		float cur_angle, cur_angle_y;
+		float line_width = 1.0f;
 
 		vec3 start_color;
 	public:
@@ -48,7 +49,6 @@ namespace octet
 
 		void load_from_file(string file_name)
 		{
-
 			cur_node.transform = transform;
 
 			shader.init();
@@ -260,7 +260,7 @@ namespace octet
 						}
 		
 						// We push the applied rule to the result string
-						for (int x = 1; x < rules[rule_index].size(); x++) 
+						for (int x = 2; x < rules[rule_index].size(); x++) 
 						{
 							result.push_back(rules[rule_index][x]);
 						}
@@ -299,11 +299,16 @@ namespace octet
 			generate_tree();
 		}
 
+		void step_line_width(float step)
+		{
+			line_width += step;
+		}
+
 		void randomize_color()
 		{
-			float r = ((double)rand() / (RAND_MAX));
-			float g = ((double)rand() / (RAND_MAX));
-			float b = ((double)rand() / (RAND_MAX));
+			float r = ((double)rand() / (RAND_MAX) /  2.0f + 0.5);
+			float g = ((double)rand() / (RAND_MAX) / 2.0f + 0.5);
+			float b = ((double)rand() / (RAND_MAX) / 2.0f + 0.5);
 
 			start_color = vec3(r, g, b);
 			regenerate();
@@ -322,7 +327,7 @@ namespace octet
 			glVertexAttribPointer(attribute_color, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)(vertices.data() + 3));
 			glEnableVertexAttribArray(attribute_color);
 
-			glLineWidth(2.0f);
+			glLineWidth(line_width);
 			glDrawArrays(GL_LINES, 0, nodes.size() << 1 );
 		}
 		

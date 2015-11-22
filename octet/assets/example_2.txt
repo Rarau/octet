@@ -5,4 +5,4 @@ F
 //Angle
 20
 //Rules
-FF[+F]F[-F][F]
+F=F[+F]F[-F][F]

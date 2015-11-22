@@ -5,6 +5,6 @@ X
 //Angle
 20
 //Rules
-XF[+X]F[-X]+X
-FFF
-]L]
+X=F[+X]F[-X]+X
+F=FF
+]=L]

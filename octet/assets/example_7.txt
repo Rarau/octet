@@ -5,5 +5,5 @@ F
 //Angle
 20
 //Rules
-FC0F/F-[C1-F+F]+[C2+F-F]
-XC0F*F++[C1+F/F]+[C2-FF]
+F=C0F/F-[C1-F+F]+[C2+F-F]
+X=C0F*F++[C1+F/F]+[C2-FF]

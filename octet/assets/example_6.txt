@@ -2,8 +2,8 @@
 X
 //Iterations
 5
-//Angle
+//Angle (in degrees)
 22.5
-//Rules
-XF-[[X]+X]+F[+FX]-X
-FFF
+//Rules (The first character is the lhs)
+X=F-[[X]+X]+F[+FX]-X
+F=FF

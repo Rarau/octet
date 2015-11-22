@@ -5,6 +5,6 @@ X
 //Angle
 25
 //Rules
-XF-[[X]+X]+F[+FX]-X
-FFF
-]L]
+X=F-[[X]+X]+F[+FX]-X
+F=FF
+]=L]

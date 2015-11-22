@@ -5,6 +5,6 @@ X
 //Angle
 25
 //Rules
-XF-[[X]/+X]+F[+/FX]-/X
-XF*+[[X]/-X]-F[+*FX]+*X
-]L]
+X=F-[[X]/+X]+F[+/FX]-/X
+X=F*+[[X]/-X]-F[+*FX]+*X
+]=L]

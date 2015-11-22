@@ -5,5 +5,5 @@ X
 //Angle
 25.7
 //Rules
-XF[+X][-X]FX
-FFF
+X=F[+X][-X]FX
+F=FF
